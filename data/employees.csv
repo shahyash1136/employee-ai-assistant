@@ -1,101 +1,101 @@
-EmployeeID,FirstName,LastName,DepartmentID,ManagerID,Designation,JoiningDate,Email,Location
-E001,Vihaan,Shah,D005,,Analyst,2020-07-03,vihaan.shah1@company.com,Bengaluru
-E002,Aditi,Sharma,D009,,Consultant,2020-06-21,aditi.sharma2@company.com,Kolkata
-E003,Aditya,Joshi,D002,,Associate,2021-11-09,aditya.joshi3@company.com,Chennai
-E004,Aditya,Shah,D004,,Lead,2018-11-23,aditya.shah4@company.com,Hyderabad
-E005,Aditya,Nair,D003,,Intern,2020-09-29,aditya.nair5@company.com,Bengaluru
-E006,Priya,Joshi,D005,,Senior Engineer,2020-05-14,priya.joshi6@company.com,Delhi
-E007,Meera,Joshi,D010,,Consultant,2022-01-22,meera.joshi7@company.com,Hyderabad
-E008,Isha,Joshi,D010,,Architect,2023-12-08,isha.joshi8@company.com,Chennai
-E009,Aarav,Singh,D009,,Manager,2023-09-11,aarav.singh9@company.com,Pune
-E010,Nikhil,Mehta,D008,,Software Engineer,2019-04-04,nikhil.mehta10@company.com,Delhi
-E011,Arjun,Kulkarni,D009,E003,Lead,2023-12-02,arjun.kulkarni11@company.com,Ahmedabad
-E012,Rohan,Sharma,D002,E006,Software Engineer,2024-08-06,rohan.sharma12@company.com,Hyderabad
-E013,Sneha,Sharma,D005,E008,Analyst,2024-01-18,sneha.sharma13@company.com,Bengaluru
-E014,Rahul,Kulkarni,D001,E002,Software Engineer,2022-07-08,rahul.kulkarni14@company.com,Delhi
-E015,Rohan,Patel,D008,E009,Senior Engineer,2018-07-27,rohan.patel15@company.com,Mumbai
-E016,Isha,Shah,D007,E005,Architect,2021-03-14,isha.shah16@company.com,Ahmedabad
-E017,Vivaan,Shah,D010,E008,Intern,2023-12-16,vivaan.shah17@company.com,Bengaluru
-E018,Meera,Sharma,D010,E010,Software Engineer,2024-12-11,meera.sharma18@company.com,Pune
-E019,Karan,Mehta,D002,E001,Architect,2024-12-19,karan.mehta19@company.com,Pune
-E020,Sai,Kulkarni,D009,E005,QA Engineer,2025-05-02,sai.kulkarni20@company.com,Mumbai
-E021,Nikhil,Sharma,D006,E004,Lead,2023-09-02,nikhil.sharma21@company.com,Kolkata
-E022,Sai,Kulkarni,D009,E007,Intern,2018-02-09,sai.kulkarni22@company.com,Pune
-E023,Vivaan,Mehta,D004,E004,Senior Engineer,2021-12-19,vivaan.mehta23@company.com,Ahmedabad
-E024,Yash,Gupta,D002,E007,Software Engineer,2023-04-12,yash.gupta24@company.com,Hyderabad
-E025,Yash,Patel,D005,E006,Intern,2022-06-26,yash.patel25@company.com,Delhi
-E026,Priya,Joshi,D010,E009,Senior Engineer,2022-04-27,priya.joshi26@company.com,Hyderabad
-E027,Vihaan,Singh,D009,E005,Consultant,2021-08-29,vihaan.singh27@company.com,Ahmedabad
-E028,Isha,Reddy,D001,E005,Lead,2020-05-10,isha.reddy28@company.com,Ahmedabad
-E029,Sneha,Nair,D006,E002,Analyst,2025-07-18,sneha.nair29@company.com,Chennai
-E030,Rahul,Nair,D004,E007,Architect,2022-06-25,rahul.nair30@company.com,Hyderabad
-E031,Aditi,Sharma,D002,E008,Manager,2023-03-19,aditi.sharma31@company.com,Delhi
-E032,Rohan,Singh,D009,E008,Analyst,2021-01-29,rohan.singh32@company.com,Kolkata
-E033,Rohan,Joshi,D003,E004,Senior Engineer,2022-08-27,rohan.joshi33@company.com,Ahmedabad
-E034,Pooja,Shah,D006,E005,Consultant,2022-09-13,pooja.shah34@company.com,Hyderabad
-E035,Arjun,Nair,D009,E001,Consultant,2024-08-21,arjun.nair35@company.com,Mumbai
-E036,Priya,Mehta,D007,E005,Consultant,2020-10-30,priya.mehta36@company.com,Pune
-E037,Rohan,Sharma,D001,E010,Manager,2020-09-04,rohan.sharma37@company.com,Bengaluru
-E038,Sai,Singh,D002,E010,Software Engineer,2021-07-01,sai.singh38@company.com,Ahmedabad
-E039,Meera,Shah,D006,E009,Consultant,2025-06-02,meera.shah39@company.com,Delhi
-E040,Karan,Gupta,D007,E003,Intern,2025-04-18,karan.gupta40@company.com,Chennai
-E041,Karan,Sharma,D008,E010,QA Engineer,2025-06-29,karan.sharma41@company.com,Ahmedabad
-E042,Nikhil,Singh,D009,E001,Intern,2020-02-22,nikhil.singh42@company.com,Pune
-E043,Aditya,Singh,D004,E007,Analyst,2021-06-08,aditya.singh43@company.com,Delhi
-E044,Yash,Sharma,D002,E004,Associate,2019-05-05,yash.sharma44@company.com,Bengaluru
-E045,Ananya,Gupta,D005,E001,Intern,2019-06-03,ananya.gupta45@company.com,Chennai
-E046,Meera,Singh,D008,E008,Architect,2021-10-27,meera.singh46@company.com,Bengaluru
-E047,Arjun,Nair,D005,E002,Analyst,2019-05-01,arjun.nair47@company.com,Ahmedabad
-E048,Nikhil,Patel,D004,E004,Lead,2025-05-29,nikhil.patel48@company.com,Pune
-E049,Neha,Shah,D004,E005,Lead,2023-02-03,neha.shah49@company.com,Pune
-E050,Yash,Gupta,D002,E001,Manager,2021-06-13,yash.gupta50@company.com,Chennai
-E051,Karan,Patel,D010,E001,Consultant,2021-08-13,karan.patel51@company.com,Chennai
-E052,Sai,Kulkarni,D009,E008,Lead,2020-01-14,sai.kulkarni52@company.com,Ahmedabad
-E053,Rahul,Kulkarni,D005,E007,Intern,2018-05-31,rahul.kulkarni53@company.com,Kolkata
-E054,Rahul,Shah,D004,E009,Associate,2024-12-25,rahul.shah54@company.com,Kolkata
-E055,Aarav,Nair,D004,E003,Lead,2024-03-06,aarav.nair55@company.com,Mumbai
-E056,Sneha,Singh,D007,E008,Architect,2020-09-25,sneha.singh56@company.com,Kolkata
-E057,Sneha,Singh,D001,E005,Lead,2024-08-01,sneha.singh57@company.com,Kolkata
-E058,Priya,Sharma,D004,E010,Consultant,2020-08-14,priya.sharma58@company.com,Ahmedabad
-E059,Arjun,Reddy,D010,E006,Senior Engineer,2022-12-09,arjun.reddy59@company.com,Pune
-E060,Aditya,Mehta,D009,E007,Associate,2025-01-11,aditya.mehta60@company.com,Kolkata
-E061,Vihaan,Kulkarni,D003,E005,Software Engineer,2018-07-08,vihaan.kulkarni61@company.com,Delhi
-E062,Sai,Gupta,D002,E010,Consultant,2024-12-13,sai.gupta62@company.com,Hyderabad
-E063,Aditi,Gupta,D002,E008,Associate,2024-08-03,aditi.gupta63@company.com,Chennai
-E064,Meera,Mehta,D010,E005,Lead,2018-03-31,meera.mehta64@company.com,Ahmedabad
-E065,Nikhil,Mehta,D004,E004,QA Engineer,2020-10-23,nikhil.mehta65@company.com,Bengaluru
-E066,Rahul,Gupta,D004,E003,Intern,2022-02-07,rahul.gupta66@company.com,Chennai
-E067,Rohan,Joshi,D009,E006,Senior Engineer,2022-06-05,rohan.joshi67@company.com,Mumbai
-E068,Pooja,Shah,D010,E009,Associate,2024-11-03,pooja.shah68@company.com,Hyderabad
-E069,Pooja,Patel,D002,E004,Intern,2019-07-10,pooja.patel69@company.com,Ahmedabad
-E070,Pooja,Nair,D007,E005,Software Engineer,2022-02-26,pooja.nair70@company.com,Hyderabad
-E071,Yash,Sharma,D002,E008,Senior Engineer,2025-06-07,yash.sharma71@company.com,Hyderabad
-E072,Rohan,Mehta,D003,E010,Software Engineer,2021-02-09,rohan.mehta72@company.com,Bengaluru
-E073,Aarav,Gupta,D005,E001,Manager,2022-09-21,aarav.gupta73@company.com,Pune
-E074,Sneha,Singh,D008,E001,Software Engineer,2023-05-16,sneha.singh74@company.com,Ahmedabad
-E075,Aditya,Gupta,D005,E010,QA Engineer,2024-02-25,aditya.gupta75@company.com,Delhi
-E076,Rahul,Kulkarni,D004,E007,Associate,2023-02-01,rahul.kulkarni76@company.com,Ahmedabad
-E077,Aditya,Patel,D002,E007,Senior Engineer,2022-03-07,aditya.patel77@company.com,Bengaluru
-E078,Nikhil,Singh,D006,E002,QA Engineer,2023-09-10,nikhil.singh78@company.com,Hyderabad
-E079,Rahul,Reddy,D010,E010,Intern,2018-04-18,rahul.reddy79@company.com,Chennai
-E080,Aditya,Gupta,D001,E002,Intern,2020-05-31,aditya.gupta80@company.com,Ahmedabad
-E081,Vivaan,Gupta,D003,E010,Software Engineer,2025-07-23,vivaan.gupta81@company.com,Pune
-E082,Ananya,Joshi,D002,E005,QA Engineer,2023-06-17,ananya.joshi82@company.com,Chennai
-E083,Neha,Mehta,D002,E001,Architect,2022-10-30,neha.mehta83@company.com,Bengaluru
-E084,Karan,Patel,D006,E010,Consultant,2024-06-06,karan.patel84@company.com,Ahmedabad
-E085,Aditya,Joshi,D002,E004,Consultant,2024-08-09,aditya.joshi85@company.com,Ahmedabad
-E086,Sneha,Reddy,D004,E006,Associate,2025-03-28,sneha.reddy86@company.com,Bengaluru
-E087,Karan,Nair,D010,E008,QA Engineer,2025-03-18,karan.nair87@company.com,Delhi
-E088,Ananya,Reddy,D002,E005,Architect,2023-01-26,ananya.reddy88@company.com,Mumbai
-E089,Meera,Reddy,D001,E008,QA Engineer,2025-04-23,meera.reddy89@company.com,Hyderabad
-E090,Vivaan,Sharma,D008,E008,Intern,2023-11-12,vivaan.sharma90@company.com,Bengaluru
-E091,Priya,Patel,D009,E007,Lead,2020-10-29,priya.patel91@company.com,Bengaluru
-E092,Neha,Reddy,D007,E006,Manager,2025-07-07,neha.reddy92@company.com,Pune
-E093,Krishna,Sharma,D003,E003,Senior Engineer,2021-04-26,krishna.sharma93@company.com,Pune
-E094,Karan,Shah,D007,E006,Analyst,2022-12-25,karan.shah94@company.com,Chennai
-E095,Karan,Singh,D007,E009,Intern,2022-09-11,karan.singh95@company.com,Bengaluru
-E096,Neha,Patel,D003,E005,Architect,2023-10-04,neha.patel96@company.com,Bengaluru
-E097,Rohan,Joshi,D002,E006,Analyst,2018-04-26,rohan.joshi97@company.com,Delhi
-E098,Karan,Nair,D001,E002,Software Engineer,2020-11-14,karan.nair98@company.com,Hyderabad
-E099,Nikhil,Kulkarni,D002,E002,Architect,2024-09-10,nikhil.kulkarni99@company.com,Mumbai
-E100,Sneha,Mehta,D002,E009,Intern,2023-09-10,sneha.mehta100@company.com,Mumbai
+EmployeeID,FirstName,LastName,DepartmentID,ManagerID,Designation,JoiningDate,Email,Location,EmploymentType,Status
+E001,Aditi,Shah,D006,,Analyst,2019-09-10,user1@company.com,Mumbai,Contract,Inactive
+E002,Priya,Shah,D001,,Analyst,2023-09-10,user2@company.com,Hyderabad,Contract,Active
+E003,Krishna,Joshi,D004,,Analyst,2019-01-07,user3@company.com,Mumbai,Full-Time,Inactive
+E004,Arjun,Joshi,D001,,Analyst,2024-06-21,user4@company.com,Pune,Full-Time,Active
+E005,Meera,Gupta,D003,,Architect,2021-04-01,user5@company.com,Mumbai,Intern,Active
+E006,Neha,Patel,D009,,Architect,2025-08-25,user6@company.com,Pune,Contract,Active
+E007,Arjun,Shah,D009,,Architect,2018-09-15,user7@company.com,Pune,Contract,Active
+E008,Nikhil,Nair,D007,,Lead,2021-07-10,user8@company.com,Bengaluru,Contract,Active
+E009,Aarav,Nair,D003,,Manager,2020-09-26,user9@company.com,Hyderabad,Contract,Active
+E010,Aarav,Patel,D005,,Architect,2024-10-30,user10@company.com,Hyderabad,Full-Time,Active
+E011,Yash,Patel,D003,E008,Architect,2022-09-24,user11@company.com,Bengaluru,Contract,Active
+E012,Nikhil,Patel,D010,E008,Analyst,2024-07-03,user12@company.com,Bengaluru,Contract,Active
+E013,Arjun,Kulkarni,D001,E005,Manager,2025-04-04,user13@company.com,Hyderabad,Intern,Active
+E014,Neha,Nair,D001,E008,Analyst,2021-12-26,user14@company.com,Hyderabad,Full-Time,Active
+E015,Aditi,Joshi,D005,E003,Lead,2020-10-11,user15@company.com,Mumbai,Full-Time,Active
+E016,Aditya,Joshi,D007,E009,Architect,2021-02-12,user16@company.com,Bengaluru,Intern,Active
+E017,Aditya,Patel,D006,E007,Software Engineer,2020-08-03,user17@company.com,Pune,Full-Time,Active
+E018,Neha,Singh,D001,E008,Manager,2024-08-10,user18@company.com,Mumbai,Full-Time,Active
+E019,Arjun,Mehta,D009,E006,Software Engineer,2024-11-02,user19@company.com,Mumbai,Contract,Active
+E020,Aditi,Patel,D007,E007,Lead,2022-06-23,user20@company.com,Hyderabad,Full-Time,Active
+E021,Neha,Patel,D002,E004,Manager,2022-12-10,user21@company.com,Mumbai,Full-Time,Active
+E022,Vivaan,Mehta,D010,E003,Architect,2024-01-07,user22@company.com,Mumbai,Full-Time,Active
+E023,Rahul,Mehta,D010,E007,Architect,2019-09-01,user23@company.com,Bengaluru,Contract,Active
+E024,Rohan,Kulkarni,D002,E008,Manager,2023-03-24,user24@company.com,Mumbai,Full-Time,Active
+E025,Neha,Reddy,D006,E005,Analyst,2023-05-15,user25@company.com,Pune,Intern,Active
+E026,Sai,Singh,D003,E009,Analyst,2018-04-21,user26@company.com,Bengaluru,Intern,Active
+E027,Krishna,Reddy,D003,E006,Architect,2020-07-01,user27@company.com,Bengaluru,Intern,Active
+E028,Aditi,Sharma,D010,E004,Software Engineer,2020-09-07,user28@company.com,Hyderabad,Contract,Active
+E029,Rahul,Sharma,D001,E005,Architect,2023-04-19,user29@company.com,Bengaluru,Contract,Active
+E030,Vivaan,Sharma,D006,E002,Lead,2020-06-22,user30@company.com,Pune,Contract,Active
+E031,Vihaan,Kulkarni,D008,E010,Manager,2024-11-04,user31@company.com,Mumbai,Intern,Active
+E032,Neha,Joshi,D007,E004,Manager,2023-05-13,user32@company.com,Mumbai,Intern,Active
+E033,Neha,Gupta,D008,E007,Software Engineer,2018-12-14,user33@company.com,Mumbai,Full-Time,Inactive
+E034,Ananya,Kulkarni,D008,E003,Manager,2024-11-10,user34@company.com,Pune,Intern,Active
+E035,Vivaan,Reddy,D003,E001,Software Engineer,2018-02-28,user35@company.com,Hyderabad,Full-Time,Active
+E036,Karan,Reddy,D001,E005,Software Engineer,2020-05-21,user36@company.com,Bengaluru,Contract,Active
+E037,Sneha,Kulkarni,D007,E003,Architect,2018-09-07,user37@company.com,Hyderabad,Intern,Active
+E038,Sai,Shah,D009,E003,Lead,2023-11-15,user38@company.com,Pune,Intern,Active
+E039,Rohan,Nair,D003,E003,Analyst,2019-08-03,user39@company.com,Mumbai,Contract,Active
+E040,Vivaan,Reddy,D009,E009,Analyst,2023-05-31,user40@company.com,Pune,Full-Time,Active
+E041,Nikhil,Reddy,D001,E002,Analyst,2023-09-11,user41@company.com,Mumbai,Contract,Active
+E042,Sai,Sharma,D010,E009,Manager,2024-10-18,user42@company.com,Hyderabad,Intern,Active
+E043,Sai,Singh,D008,E009,Architect,2020-10-11,user43@company.com,Pune,Contract,Active
+E044,Nikhil,Mehta,D007,E002,Analyst,2022-05-27,user44@company.com,Pune,Contract,Active
+E045,Aditya,Mehta,D004,E005,Software Engineer,2019-05-17,user45@company.com,Bengaluru,Full-Time,Active
+E046,Rohan,Gupta,D004,E002,Software Engineer,2022-06-20,user46@company.com,Pune,Intern,Active
+E047,Meera,Sharma,D009,E007,Manager,2021-10-21,user47@company.com,Bengaluru,Full-Time,Active
+E048,Nikhil,Kulkarni,D001,E006,Analyst,2024-03-19,user48@company.com,Hyderabad,Contract,Active
+E049,Aarav,Patel,D010,E005,Software Engineer,2023-09-30,user49@company.com,Mumbai,Full-Time,Active
+E050,Rahul,Gupta,D005,E001,Lead,2020-01-14,user50@company.com,Bengaluru,Contract,Active
+E051,Rohan,Mehta,D009,E009,Analyst,2024-05-26,user51@company.com,Bengaluru,Full-Time,Active
+E052,Vihaan,Patel,D007,E002,Manager,2021-01-06,user52@company.com,Mumbai,Intern,Active
+E053,Nikhil,Shah,D002,E005,Manager,2019-05-14,user53@company.com,Hyderabad,Contract,Inactive
+E054,Isha,Patel,D003,E001,Software Engineer,2023-11-29,user54@company.com,Bengaluru,Full-Time,Active
+E055,Karan,Reddy,D004,E005,Software Engineer,2025-01-19,user55@company.com,Bengaluru,Contract,Active
+E056,Vihaan,Singh,D003,E005,Analyst,2021-11-22,user56@company.com,Mumbai,Full-Time,Active
+E057,Rohan,Sharma,D009,E004,Lead,2023-10-08,user57@company.com,Mumbai,Intern,Active
+E058,Sai,Singh,D008,E009,Software Engineer,2022-05-30,user58@company.com,Pune,Contract,Active
+E059,Yash,Gupta,D003,E007,Analyst,2021-11-24,user59@company.com,Mumbai,Intern,Active
+E060,Aarav,Joshi,D007,E003,Architect,2018-08-15,user60@company.com,Bengaluru,Intern,Active
+E061,Neha,Gupta,D005,E001,Manager,2023-02-25,user61@company.com,Hyderabad,Full-Time,Active
+E062,Pooja,Sharma,D006,E006,Analyst,2024-02-19,user62@company.com,Bengaluru,Full-Time,Active
+E063,Aditi,Patel,D003,E001,Lead,2021-10-05,user63@company.com,Bengaluru,Intern,Active
+E064,Aarav,Singh,D004,E009,Analyst,2018-01-21,user64@company.com,Pune,Contract,Inactive
+E065,Karan,Singh,D001,E007,Software Engineer,2018-04-03,user65@company.com,Mumbai,Intern,Active
+E066,Pooja,Kulkarni,D003,E010,Software Engineer,2022-05-15,user66@company.com,Bengaluru,Intern,Inactive
+E067,Meera,Reddy,D003,E001,Software Engineer,2023-10-03,user67@company.com,Mumbai,Intern,Inactive
+E068,Yash,Gupta,D004,E002,Manager,2018-05-08,user68@company.com,Mumbai,Contract,Active
+E069,Vihaan,Reddy,D009,E001,Software Engineer,2025-01-15,user69@company.com,Hyderabad,Contract,Active
+E070,Krishna,Patel,D008,E002,Architect,2023-08-23,user70@company.com,Mumbai,Intern,Active
+E071,Isha,Sharma,D005,E002,Software Engineer,2020-12-23,user71@company.com,Hyderabad,Contract,Active
+E072,Karan,Shah,D002,E008,Architect,2025-09-01,user72@company.com,Pune,Full-Time,Inactive
+E073,Karan,Nair,D003,E006,Architect,2020-11-06,user73@company.com,Pune,Full-Time,Active
+E074,Vivaan,Sharma,D001,E008,Lead,2021-01-05,user74@company.com,Bengaluru,Intern,Active
+E075,Nikhil,Patel,D005,E008,Architect,2023-03-24,user75@company.com,Pune,Contract,Active
+E076,Nikhil,Patel,D008,E001,Architect,2021-04-01,user76@company.com,Hyderabad,Contract,Active
+E077,Arjun,Patel,D004,E004,Software Engineer,2018-11-02,user77@company.com,Bengaluru,Contract,Active
+E078,Vivaan,Mehta,D010,E009,Software Engineer,2021-02-19,user78@company.com,Hyderabad,Contract,Active
+E079,Rohan,Kulkarni,D001,E003,Lead,2018-01-15,user79@company.com,Bengaluru,Intern,Active
+E080,Pooja,Patel,D007,E006,Manager,2022-03-21,user80@company.com,Mumbai,Contract,Active
+E081,Vihaan,Singh,D007,E002,Manager,2020-03-12,user81@company.com,Bengaluru,Full-Time,Active
+E082,Sneha,Joshi,D007,E010,Manager,2018-11-09,user82@company.com,Mumbai,Contract,Active
+E083,Aditya,Sharma,D001,E005,Manager,2025-02-13,user83@company.com,Hyderabad,Intern,Active
+E084,Vihaan,Joshi,D004,E006,Architect,2022-10-19,user84@company.com,Pune,Intern,Active
+E085,Ananya,Gupta,D001,E007,Manager,2023-01-21,user85@company.com,Hyderabad,Full-Time,Active
+E086,Meera,Mehta,D003,E003,Manager,2023-04-19,user86@company.com,Bengaluru,Contract,Active
+E087,Rohan,Reddy,D007,E004,Lead,2021-05-17,user87@company.com,Mumbai,Full-Time,Active
+E088,Rohan,Reddy,D002,E004,Software Engineer,2023-08-13,user88@company.com,Hyderabad,Contract,Active
+E089,Priya,Sharma,D007,E003,Analyst,2024-02-22,user89@company.com,Pune,Contract,Active
+E090,Sneha,Singh,D002,E006,Architect,2020-09-06,user90@company.com,Pune,Full-Time,Active
+E091,Priya,Joshi,D007,E007,Manager,2023-11-17,user91@company.com,Bengaluru,Full-Time,Active
+E092,Aditya,Reddy,D005,E010,Architect,2022-01-15,user92@company.com,Pune,Full-Time,Active
+E093,Nikhil,Joshi,D004,E007,Manager,2022-06-26,user93@company.com,Mumbai,Full-Time,Active
+E094,Rohan,Shah,D007,E008,Analyst,2024-08-02,user94@company.com,Hyderabad,Intern,Active
+E095,Isha,Gupta,D008,E004,Software Engineer,2019-03-23,user95@company.com,Mumbai,Intern,Active
+E096,Vihaan,Gupta,D002,E009,Software Engineer,2018-06-11,user96@company.com,Mumbai,Intern,Active
+E097,Meera,Patel,D003,E005,Analyst,2023-12-04,user97@company.com,Mumbai,Contract,Active
+E098,Rahul,Sharma,D010,E004,Architect,2022-05-09,user98@company.com,Mumbai,Full-Time,Active
+E099,Pooja,Sharma,D005,E008,Lead,2021-02-15,user99@company.com,Pune,Intern,Active
+E100,Karan,Shah,D001,E007,Analyst,2025-04-14,user100@company.com,Pune,Contract,Active

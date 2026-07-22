@@ -1,101 +1,101 @@
-EmployeeID,Year,Rating,PromotionEligible
-E001,2025,2.7,No
-E002,2025,3.2,No
-E003,2025,3.9,No
-E004,2025,2.9,No
-E005,2025,4.2,No
-E006,2025,3.2,No
-E007,2025,2.9,No
-E008,2025,2.8,No
-E009,2025,4.4,No
-E010,2025,2.7,No
-E011,2025,3.6,No
-E012,2025,3.1,No
-E013,2025,2.7,No
-E014,2025,2.9,No
-E015,2025,3.0,No
-E016,2025,3.9,No
-E017,2025,4.2,No
-E018,2025,3.1,No
-E019,2025,4.7,Yes
-E020,2025,4.4,No
-E021,2025,2.6,No
-E022,2025,3.6,No
-E023,2025,2.9,No
-E024,2025,2.6,No
-E025,2025,2.6,No
-E026,2025,3.4,No
-E027,2025,4.2,No
-E028,2025,3.8,No
-E029,2025,5.0,Yes
-E030,2025,4.5,Yes
-E031,2025,4.4,No
-E032,2025,4.7,Yes
-E033,2025,3.5,No
-E034,2025,3.5,No
-E035,2025,3.2,No
-E036,2025,3.1,No
-E037,2025,4.4,No
-E038,2025,2.8,No
-E039,2025,4.6,Yes
-E040,2025,3.3,No
-E041,2025,3.0,No
-E042,2025,4.1,No
-E043,2025,3.4,No
-E044,2025,5.0,Yes
-E045,2025,4.1,No
-E046,2025,3.7,No
-E047,2025,4.7,Yes
-E048,2025,2.5,No
-E049,2025,3.6,No
-E050,2025,4.9,Yes
-E051,2025,5.0,Yes
-E052,2025,3.3,No
-E053,2025,4.7,Yes
-E054,2025,4.8,Yes
-E055,2025,4.1,No
-E056,2025,4.7,Yes
-E057,2025,3.9,No
-E058,2025,3.5,No
-E059,2025,2.7,No
-E060,2025,5.0,Yes
-E061,2025,3.1,No
-E062,2025,3.6,No
-E063,2025,4.6,Yes
-E064,2025,4.8,Yes
-E065,2025,4.3,No
-E066,2025,4.5,Yes
-E067,2025,4.0,No
-E068,2025,2.8,No
-E069,2025,4.0,No
-E070,2025,3.9,No
-E071,2025,2.7,No
-E072,2025,2.8,No
-E073,2025,3.6,No
-E074,2025,4.7,Yes
-E075,2025,2.7,No
-E076,2025,3.4,No
-E077,2025,4.7,Yes
-E078,2025,2.8,No
-E079,2025,3.4,No
-E080,2025,4.3,No
-E081,2025,3.5,No
-E082,2025,3.0,No
-E083,2025,2.7,No
-E084,2025,2.9,No
-E085,2025,3.3,No
-E086,2025,4.0,No
-E087,2025,4.1,No
-E088,2025,4.0,No
-E089,2025,2.8,No
-E090,2025,4.2,No
-E091,2025,3.3,No
-E092,2025,3.0,No
-E093,2025,2.9,No
-E094,2025,4.8,Yes
-E095,2025,4.7,Yes
-E096,2025,3.5,No
-E097,2025,4.8,Yes
-E098,2025,3.3,No
-E099,2025,3.1,No
-E100,2025,3.1,No
+EmployeeID,Year,Rating,PromotionEligible,ReviewComments
+E001,2025,4.3,No,Needs improvement in leadership
+E002,2025,4.9,Yes,Needs improvement in leadership
+E003,2025,4.9,Yes,Great team player
+E004,2025,2.9,No,Great team player
+E005,2025,2.7,No,Great team player
+E006,2025,3.0,No,Consistent delivery
+E007,2025,2.9,No,Excellent performer
+E008,2025,4.9,Yes,Strong technical skills
+E009,2025,3.7,No,Needs improvement in leadership
+E010,2025,4.1,No,Strong technical skills
+E011,2025,3.1,No,Improve communication
+E012,2025,2.6,No,Improve communication
+E013,2025,2.8,No,Improve communication
+E014,2025,3.0,No,Improve communication
+E015,2025,4.5,Yes,Consistent delivery
+E016,2025,2.7,No,Excellent performer
+E017,2025,3.2,No,Excellent performer
+E018,2025,2.8,No,Great team player
+E019,2025,3.2,No,Needs improvement in leadership
+E020,2025,2.9,No,Consistent delivery
+E021,2025,3.8,No,Improve communication
+E022,2025,4.6,Yes,Needs improvement in leadership
+E023,2025,4.9,Yes,Consistent delivery
+E024,2025,4.9,Yes,Excellent performer
+E025,2025,2.9,No,Strong technical skills
+E026,2025,3.4,No,Consistent delivery
+E027,2025,3.5,No,Great team player
+E028,2025,5.0,Yes,Improve communication
+E029,2025,2.5,No,Needs improvement in leadership
+E030,2025,3.6,No,Excellent performer
+E031,2025,2.6,No,Strong technical skills
+E032,2025,2.9,No,Strong technical skills
+E033,2025,4.6,Yes,Excellent performer
+E034,2025,4.5,Yes,Strong technical skills
+E035,2025,3.5,No,Consistent delivery
+E036,2025,4.5,Yes,Strong technical skills
+E037,2025,3.6,No,Improve communication
+E038,2025,3.4,No,Consistent delivery
+E039,2025,3.6,No,Consistent delivery
+E040,2025,3.4,No,Needs improvement in leadership
+E041,2025,3.3,No,Improve communication
+E042,2025,5.0,Yes,Improve communication
+E043,2025,4.5,Yes,Strong technical skills
+E044,2025,2.9,No,Consistent delivery
+E045,2025,3.0,No,Great team player
+E046,2025,4.4,No,Excellent performer
+E047,2025,3.4,No,Needs improvement in leadership
+E048,2025,2.9,No,Improve communication
+E049,2025,2.6,No,Strong technical skills
+E050,2025,3.7,No,Consistent delivery
+E051,2025,3.8,No,Consistent delivery
+E052,2025,4.6,Yes,Strong technical skills
+E053,2025,4.1,No,Improve communication
+E054,2025,4.1,No,Great team player
+E055,2025,2.7,No,Excellent performer
+E056,2025,4.0,No,Improve communication
+E057,2025,3.3,No,Needs improvement in leadership
+E058,2025,4.4,No,Great team player
+E059,2025,3.3,No,Improve communication
+E060,2025,4.8,Yes,Strong technical skills
+E061,2025,3.0,No,Strong technical skills
+E062,2025,4.8,Yes,Improve communication
+E063,2025,3.1,No,Needs improvement in leadership
+E064,2025,2.8,No,Consistent delivery
+E065,2025,4.2,No,Improve communication
+E066,2025,4.7,Yes,Excellent performer
+E067,2025,2.6,No,Improve communication
+E068,2025,3.0,No,Needs improvement in leadership
+E069,2025,2.6,No,Needs improvement in leadership
+E070,2025,3.6,No,Excellent performer
+E071,2025,3.6,No,Consistent delivery
+E072,2025,3.7,No,Strong technical skills
+E073,2025,4.8,Yes,Strong technical skills
+E074,2025,3.3,No,Excellent performer
+E075,2025,3.3,No,Great team player
+E076,2025,3.8,No,Improve communication
+E077,2025,3.9,No,Needs improvement in leadership
+E078,2025,3.7,No,Improve communication
+E079,2025,2.9,No,Strong technical skills
+E080,2025,3.1,No,Improve communication
+E081,2025,4.5,Yes,Improve communication
+E082,2025,3.0,No,Great team player
+E083,2025,5.0,Yes,Needs improvement in leadership
+E084,2025,3.1,No,Great team player
+E085,2025,2.8,No,Great team player
+E086,2025,4.3,No,Strong technical skills
+E087,2025,4.2,No,Strong technical skills
+E088,2025,3.9,No,Strong technical skills
+E089,2025,3.7,No,Excellent performer
+E090,2025,3.0,No,Consistent delivery
+E091,2025,3.5,No,Excellent performer
+E092,2025,3.3,No,Great team player
+E093,2025,4.8,Yes,Excellent performer
+E094,2025,5.0,Yes,Consistent delivery
+E095,2025,3.1,No,Great team player
+E096,2025,3.3,No,Great team player
+E097,2025,2.6,No,Consistent delivery
+E098,2025,4.1,No,Needs improvement in leadership
+E099,2025,4.5,Yes,Strong technical skills
+E100,2025,4.2,No,Consistent delivery

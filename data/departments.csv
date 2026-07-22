@@ -1,11 +1,11 @@
-DepartmentID,DepartmentName,Head,Budget
-D001,Engineering,Alice Johnson,5000000
-D002,HR,Bob Smith,1200000
-D003,Finance,Carol Lee,2500000
-D004,Sales,David Brown,4000000
-D005,Marketing,Emma Davis,1800000
-D006,Support,Frank Wilson,1500000
-D007,Operations,Grace Miller,3000000
-D008,IT,Henry Moore,3500000
-D009,Legal,Ivy Taylor,1000000
-D010,Product,Jack Anderson,4500000
+DepartmentID,DepartmentName,DepartmentHeadID,Budget
+D001,Engineering,E001,1680249
+D002,HR,E002,3158020
+D003,Finance,E003,2911264
+D004,Sales,E004,6598179
+D005,Marketing,E005,4559474
+D006,Support,E006,4105613
+D007,Operations,E007,2902419
+D008,IT,E008,5135109
+D009,Legal,E009,1286029
+D010,Product,E010,6836984
