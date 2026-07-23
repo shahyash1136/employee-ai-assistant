@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
-import { employeeService } from "../services/employee.service.js";
+import { projectServices } from "../services/project.service.js";
 
-export const getEmployees = async (req: Request, res: Response) => {
+export const getProjects = async (req: Request, res: Response) => {
   try {
-    const employees = await employeeService.getEmployees();
+    const projects = await projectServices.getProjects();
 
     res.json({
       success: true,
-      data: employees,
+      data: projects,
     });
   } catch (error) {
     res.status(500).json({
