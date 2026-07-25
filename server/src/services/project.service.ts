@@ -16,6 +16,11 @@ export class ProjectServices {
       }),
     );
   }
+
+  async getProjectsByEmployee(employeeId: string): Promise<Project[]> {
+    const projects = await this.getProjects();
+    return projects.filter((p) => p.employeeID === employeeId);
+  }
 }
 
 export const projectServices = new ProjectServices();

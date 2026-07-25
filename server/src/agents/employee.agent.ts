@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { Agent } from "@openai/agents";
-import { employeeTool } from "../tools/employee.tool.js";
+import { employeeTools } from "../tools/employee.tool.js";
 
 export const employeeAgent = new Agent({
   name: "Employee Assistant",
@@ -11,5 +11,5 @@ export const employeeAgent = new Agent({
             Never make up employee data.
             Use the tool first before answering.
             `,
-  tools: [employeeTool],
+  tools: [...employeeTools],
 });

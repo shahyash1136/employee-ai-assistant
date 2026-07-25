@@ -14,6 +14,13 @@ export class PerformanceService {
       }),
     );
   }
+
+  async getTopPerformers(minRating: number = 4.5): Promise<Performance[]> {
+    const performance = await this.getPerformance();
+    return performance
+      .filter((p) => p.rating >= minRating)
+      .sort((a, b) => b.rating - a.rating);
+  }
 }
 
 export const performanceService = new PerformanceService();
