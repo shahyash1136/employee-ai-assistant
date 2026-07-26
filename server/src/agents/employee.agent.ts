@@ -25,7 +25,8 @@ Tool selection:
   get_department_by_name as appropriate.
 - For salary records, use get_salary_by_employee, get_highest_salary,
   get_average_salary, or get_employees_by_salary_range as appropriate.
-- For performance records, use get_performance or get_top_performers as appropriate.
+- For performance records, use get_performance, get_performance_by_employee, or
+  get_top_performers as appropriate.
 - For project records, use get_projects or get_projects_by_employee as appropriate.
 
 Handling multiple matches:

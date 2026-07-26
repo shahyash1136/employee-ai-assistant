@@ -33,3 +33,29 @@ export const getTopPerformers = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Unable to read CSV" });
   }
 };
+
+export const getPerformanceByEmployee = async (req: Request, res: Response) => {
+  try {
+    const rawEmployeeId = req.params.employeeId;
+    const employeeId = Array.isArray(rawEmployeeId)
+      ? rawEmployeeId[0]
+      : rawEmployeeId;
+
+    if (!employeeId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Employee ID is required" });
+    }
+
+    const records =
+      await performanceService.getPerformanceByEmployee(employeeId);
+    if (records.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No performance records found" });
+    }
+    res.json({ success: true, data: records });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Unable to read CSV" });
+  }
+};
