@@ -21,7 +21,7 @@ export class AttendanceService {
     return attendance.filter((a) => a.employeeId === employeeId);
   }
 
-  async getAttendancePercentage(employeeId: string): Promise<number> {
+  async getAttendancePercentage(employeeId: string): Promise<number | null> {
     const records = await this.getAttendanceByEmployee(employeeId);
 
     // Holiday and Leave are both treated as non-working days and excluded
@@ -29,7 +29,7 @@ export class AttendanceService {
     const workingDays = records.filter(
       (r) => r.status !== "Holiday" && r.status !== "Leave",
     );
-    if (workingDays.length === 0) return 0;
+    if (workingDays.length === 0) return null;
 
     // Present/WFH count as a full day, Half-Day counts as half.
     const attendedDays = workingDays.reduce((sum, r) => {

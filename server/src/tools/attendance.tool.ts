@@ -20,17 +20,39 @@ export const getAttendanceByEmployeeTool = tool({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
   execute: async function ({ employeeId }) {
-    const employee =
-      await attendanceService.getAttendanceByEmployee(employeeId);
-    if (!employee) {
+    const records = await attendanceService.getAttendanceByEmployee(employeeId);
+    if (records.length === 0) {
       return JSON.stringify({
-        error: `No employee found with ID ${employeeId}`,
+        error: `No attendance records found for employee ID ${employeeId}`,
       });
     }
-    return JSON.stringify(employee);
+    return JSON.stringify(records);
   },
 });
 
 export const getAttendancePercentageTool = tool({
   name: "get_attendance_percentage",
+  description:
+    "Returns attendance percentage of the single employee matching the given employee ID (e.g. E001).",
+  parameters: z.object({
+    employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
+  }),
+  execute: async function ({ employeeId }) {
+    const percentage =
+      await attendanceService.getAttendancePercentage(employeeId);
+
+    if (percentage === undefined || percentage === null) {
+      return JSON.stringify({
+        error: `No attendance records found for employee ID ${employeeId}`,
+      });
+    }
+
+    return JSON.stringify({ employeeId, attendancePercentage: percentage });
+  },
 });
+
+export const attendanceTools = [
+  getAttendanceTool,
+  getAttendanceByEmployeeTool,
+  getAttendancePercentageTool,
+];

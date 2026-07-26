@@ -15,6 +15,11 @@ export class PerformanceService {
     );
   }
 
+  async getPerformanceByEmployee(employeeId: string): Promise<Performance[]> {
+    const performance = await this.getPerformance();
+    return performance.filter((p) => p.employeeID === employeeId);
+  }
+
   async getTopPerformers(minRating: number = 4.5): Promise<Performance[]> {
     const performance = await this.getPerformance();
     return performance
