@@ -1,15 +1,16 @@
 import { tool } from "@openai/agents";
 import { z } from "zod";
 import { departmentService } from "../services/department.service.js";
+import { safeToolExecute } from "../utils/safeToolExecute.js";
 
 export const getDepartmentsTool = tool({
   name: "get_departments",
   description: "Returns all the departments from the department CSV file",
   parameters: z.object({}),
-  execute: async function () {
+  execute: safeToolExecute("get_departments", async () => {
     const departments = await departmentService.getDepartment();
     return JSON.stringify(departments);
-  },
+  }),
 });
 
 export const getDepartmentByIdTool = tool({
@@ -21,7 +22,7 @@ export const getDepartmentByIdTool = tool({
       .string()
       .describe("The Department ID to lookup, e.g. 'D001' "),
   }),
-  execute: async function ({ departmentId }) {
+  execute: safeToolExecute("get_department_by_id", async ({ departmentId }) => {
     const department = await departmentService.getDepartmentById(departmentId);
     if (!department) {
       return JSON.stringify({
@@ -29,13 +30,13 @@ export const getDepartmentByIdTool = tool({
       });
     }
     return JSON.stringify(department);
-  },
+  }),
 });
 
 export const getDepartmentByNameTool = tool({
   name: "get_department_by_name",
   description:
-    "Searches department by name (case-insensitive, partial match) and returns all matches. ",
+    "Searches department by name (case-insensitive, partial match) and returns all matches.",
   parameters: z.object({
     departmentName: z
       .string()
@@ -43,16 +44,19 @@ export const getDepartmentByNameTool = tool({
         "The name of partial name to search for, e.g. 'Engineering' or 'HR'",
       ),
   }),
-  execute: async function ({ departmentName }) {
-    const departments =
-      await departmentService.getDepartmentByName(departmentName);
-    if (departments.length === 0) {
-      return JSON.stringify({
-        error: `No department found matching "${departmentName}"`,
-      });
-    }
-    return JSON.stringify(departments);
-  },
+  execute: safeToolExecute(
+    "get_department_by_name",
+    async ({ departmentName }) => {
+      const departments =
+        await departmentService.getDepartmentByName(departmentName);
+      if (departments.length === 0) {
+        return JSON.stringify({
+          error: `No department found matching "${departmentName}"`,
+        });
+      }
+      return JSON.stringify(departments);
+    },
+  ),
 });
 
 export const departmentTools = [

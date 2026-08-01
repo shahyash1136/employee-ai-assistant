@@ -1,15 +1,16 @@
 import { tool } from "@openai/agents";
 import { z } from "zod";
 import { projectServices } from "../services/project.service.js";
+import { safeToolExecute } from "../utils/safeToolExecute.js";
 
 export const getProjectsTool = tool({
   name: "get_projects",
   description: "Returns all projects from the projects CSV file.",
   parameters: z.object({}),
-  execute: async function () {
+  execute: safeToolExecute("get_projects", async () => {
     const projects = await projectServices.getProjects();
     return JSON.stringify(projects);
-  },
+  }),
 });
 
 export const getProjectsByEmployeeTool = tool({
@@ -18,10 +19,18 @@ export const getProjectsByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
-  execute: async function ({ employeeId }: { employeeId: string }) {
-    const projects = await projectServices.getProjectsByEmployee(employeeId);
-    return JSON.stringify(projects);
-  },
+  execute: safeToolExecute(
+    "get_projects_by_employee",
+    async ({ employeeId }: { employeeId: string }) => {
+      const projects = await projectServices.getProjectsByEmployee(employeeId);
+      if (projects.length === 0) {
+        return JSON.stringify({
+          error: `No projects found for employee ID ${employeeId}`,
+        });
+      }
+      return JSON.stringify(projects);
+    },
+  ),
 });
 
 export const projectTools = [getProjectsTool, getProjectsByEmployeeTool];
