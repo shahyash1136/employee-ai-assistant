@@ -1,15 +1,16 @@
 import { tool } from "@openai/agents";
 import { z } from "zod";
 import { performanceService } from "../services/performance.service.js";
+import { safeToolExecute } from "../utils/safeToolExecute.js";
 
 export const getPerformanceTool = tool({
   name: "get_performance",
   description: "Returns all performance records from the performance CSV file.",
   parameters: z.object({}),
-  execute: async function () {
+  execute: safeToolExecute("get_performance", async () => {
     const performance = await performanceService.getPerformance();
     return JSON.stringify(performance);
-  },
+  }),
 });
 
 export const getPerformanceByEmployeeTool = tool({
@@ -19,16 +20,19 @@ export const getPerformanceByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
-  execute: async function ({ employeeId }) {
-    const records =
-      await performanceService.getPerformanceByEmployee(employeeId);
-    if (records.length === 0) {
-      return JSON.stringify({
-        error: `No performance records found for employee ID ${employeeId}`,
-      });
-    }
-    return JSON.stringify(records);
-  },
+  execute: safeToolExecute(
+    "get_performance_by_employee",
+    async ({ employeeId }) => {
+      const records =
+        await performanceService.getPerformanceByEmployee(employeeId);
+      if (records.length === 0) {
+        return JSON.stringify({
+          error: `No performance records found for employee ID ${employeeId}`,
+        });
+      }
+      return JSON.stringify(records);
+    },
+  ),
 });
 
 export const getTopPerformersTool = tool({
@@ -41,10 +45,19 @@ export const getTopPerformersTool = tool({
       .default(4.5)
       .describe("The minimum rating to filter by (default is 4.5)"),
   }),
-  execute: async function ({ minRating }: { minRating: number }) {
-    const topPerformers = await performanceService.getTopPerformers(minRating);
-    return JSON.stringify(topPerformers);
-  },
+  execute: safeToolExecute(
+    "get_top_performers",
+    async ({ minRating }: { minRating: number }) => {
+      const topPerformers =
+        await performanceService.getTopPerformers(minRating);
+      if (topPerformers.length === 0) {
+        return JSON.stringify({
+          error: `No performers found with rating >= ${minRating}`,
+        });
+      }
+      return JSON.stringify(topPerformers);
+    },
+  ),
 });
 
 export const performanceTools = [

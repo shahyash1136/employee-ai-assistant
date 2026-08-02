@@ -6,10 +6,9 @@ import { departmentTools } from "../tools/department.tool.js";
 import { performanceTools } from "../tools/performance.tool.js";
 import { projectTools } from "../tools/project.tool.js";
 import { salaryTools } from "../tools/salary.tool.js";
+import { StructuredResponseSchema } from "../types/structuredResponse.js";
 
-export const employeeAgent = new Agent({
-  name: "Employee Assistant",
-  instructions: `
+const baseInstructions = `
 You are an AI Employee Assistant. You answer employee, attendance, department, salary,
 project, and performance related questions using the tools provided. Never make up data —
 always call the appropriate tool before answering.
@@ -24,7 +23,8 @@ Tool selection:
 - For department records, use get_departments, get_department_by_id, or
   get_department_by_name as appropriate.
 - For salary records, use get_salary_by_employee, get_highest_salary,
-  get_average_salary, or get_employees_by_salary_range as appropriate.
+  get_highest_salary_by_department (when the question is scoped to a specific
+  department), get_average_salary, or get_employees_by_salary_range as appropriate.
 - For performance records, use get_performance, get_performance_by_employee, or
   get_top_performers as appropriate.
 - For project records, use get_projects or get_projects_by_employee as appropriate.
@@ -43,13 +43,39 @@ General:
 - If a tool returns no results or an error, say so plainly instead of guessing.
 - Prefer the most specific tool available (e.g. get_employee_by_id over get_all_employees
   when you already have an ID) to avoid unnecessary data.
-    `,
-  tools: [
-    ...employeeTools,
-    ...attendanceTools,
-    ...departmentTools,
-    ...performanceTools,
-    ...projectTools,
-    ...salaryTools,
-  ],
+`;
+
+const allTools = [
+  ...employeeTools,
+  ...attendanceTools,
+  ...departmentTools,
+  ...performanceTools,
+  ...projectTools,
+  ...salaryTools,
+];
+
+export const employeeAgent = new Agent({
+  name: "Employee Assistant",
+  instructions: baseInstructions,
+  tools: allTools,
+});
+
+export const employeeAgentStructured = new Agent({
+  name: "Employee Assistant (Structured)",
+  instructions:
+    baseInstructions +
+    `
+Output format:
+- Your final answer MUST be returned as structured data matching the given schema.
+- Always populate "summary" with a short natural-language answer.
+- Populate "employees" with any relevant employee records (use an empty array if none apply).
+- Populate "metrics" with any relevant aggregate figures like highest/average salary
+  (use an empty array if none apply).
+- CRITICAL: Only fill a field if you actually have that data from a tool result.
+  If a field like salary, attendancePercentage, or performanceRating was not looked up
+  or is not available for a given employee, set it to null. NEVER guess or default to 0 —
+  0 is a valid real value (e.g. 0% attendance) and must not be confused with "unknown."
+`,
+  tools: allTools,
+  outputType: StructuredResponseSchema,
 });

@@ -37,6 +37,20 @@ export class SalaryServices {
     const salaries = await this.getSalaries();
     return salaries.filter((s) => s.ctc >= min && s.ctc <= max);
   }
+
+  async getHighestSalaryInDepartment(
+    departmentId: string,
+    employeeIds: string[],
+  ): Promise<Salary | undefined> {
+    const salaries = await this.getSalaries();
+    const departmentSalaries = salaries.filter((s) =>
+      employeeIds.includes(s.employeeID),
+    );
+    if (departmentSalaries.length === 0) return undefined;
+    return departmentSalaries.reduce((highest, current) =>
+      current.ctc > highest.ctc ? current : highest,
+    );
+  }
 }
 
 export const salaryServices = new SalaryServices();
