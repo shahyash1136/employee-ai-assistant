@@ -1,4 +1,5 @@
 import { Agent } from "@openai/agents";
+import { scopeGuardrail } from "../guardrails/scope.guardrail.js";
 import { StructuredResponseSchema } from "../types/structuredResponse.js";
 import { structuredOutputInstructions } from "./shared/instructionFragments.js";
 import {
@@ -22,6 +23,7 @@ import {
   projectAgent,
   projectAgentStructured,
 } from "./domains/project.agent.js";
+import { promptInjectionGuardrail } from "../guardrails/promptInjection.guardrail.js";
 
 const orchestratorInstructions = `
 You are the Orchestrator for an Employee AI Assistant. You do NOT answer business
@@ -60,6 +62,7 @@ Handling ambiguous requests:
 export const orchestratorAgent = new Agent({
   name: "Orchestrator",
   instructions: orchestratorInstructions,
+  inputGuardrails: [scopeGuardrail, promptInjectionGuardrail],
   handoffs: [
     employeeAgent,
     attendanceAgent,
@@ -81,6 +84,7 @@ data matching the given schema: put the clarifying question in "summary", and
 set "employees" and "metrics" to empty arrays, since no data was looked up.
 ` +
     structuredOutputInstructions,
+  inputGuardrails: [scopeGuardrail, promptInjectionGuardrail],
   handoffs: [
     employeeAgentStructured,
     attendanceAgentStructured,

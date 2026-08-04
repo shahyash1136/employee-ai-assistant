@@ -4,6 +4,15 @@ import {
   runEmployeeAgentStructured,
 } from "../orchestrator/runner.js";
 import { conversationService } from "../conversation/conversation.service.js";
+import { InputGuardrailTripwireTriggered } from "@openai/agents";
+
+// Renamed from OUT_OF_SCOPE_MESSAGE — deliberately generic wording. If this
+// text differed for "out of scope" vs "injection detected," an attacker
+// probing the system could use the response itself to figure out which
+// guardrail they tripped. One decline message for any input guardrail keeps
+// that information from leaking.
+const REQUEST_DECLINED_MESSAGE =
+  "I can only help with questions about employees, attendance, departments, salaries, performance, or projects. Could you rephrase your request around one of those topics?";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -51,6 +60,24 @@ export async function chatController(req: Request, res: Response) {
         );
         return res.json({ success: true, response: structuredResponse });
       } catch (agentError) {
+        if (agentError instanceof InputGuardrailTripwireTriggered) {
+          // Internal-only log — safe to include guardrail name/reason here since
+          // this never reaches the client.
+          console.warn(
+            "Input guardrail tripped:",
+            agentError.result.guardrail.name,
+            agentError.result.output.outputInfo,
+          );
+
+          const decline = {
+            summary: REQUEST_DECLINED_MESSAGE,
+            employees: [],
+            metrics: [],
+          };
+          conversationService.addAssistantMessage(sessionId, decline.summary);
+          return res.json({ success: true, response: decline });
+        }
+
         console.error("Structured agent run failed:", agentError);
         return res.status(502).json({
           success: false,
@@ -65,6 +92,24 @@ export async function chatController(req: Request, res: Response) {
     try {
       stream = await runEmployeeAgentStream(history);
     } catch (agentError) {
+      if (agentError instanceof InputGuardrailTripwireTriggered) {
+        // Internal-only log — safe to include guardrail name/reason here since
+        // this never reaches the client.
+        console.warn(
+          "Input guardrail tripped:",
+          agentError.result.guardrail.name,
+          agentError.result.output.outputInfo,
+        );
+
+        const decline = {
+          summary: REQUEST_DECLINED_MESSAGE,
+          employees: [],
+          metrics: [],
+        };
+        conversationService.addAssistantMessage(sessionId, decline.summary);
+        return res.json({ success: true, response: decline });
+      }
+
       console.error("Streaming agent run failed to start:", agentError);
       return res.status(502).json({
         success: false,
