@@ -4,7 +4,10 @@ import {
   getEmployeeByNameTool,
 } from "../../tools/employee.tool.js";
 import { createDomainAgent } from "../shared/createDomainAgent.js";
-import { nameResolutionInstructions } from "../shared/instructionFragments.js";
+import {
+  nameResolutionInstructions,
+  outOfScopeHandoffInstructions,
+} from "../shared/instructionFragments.js";
 
 const instructions = `
 You are the Performance domain agent. You answer questions about performance reviews —
@@ -19,6 +22,8 @@ Tool selection:
 ${nameResolutionInstructions}
 General:
 - If a tool returns no results or an error, say so plainly instead of guessing.
+
+${outOfScopeHandoffInstructions}
 `;
 
 export const {

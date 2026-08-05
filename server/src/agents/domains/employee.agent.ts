@@ -1,5 +1,6 @@
 import { employeeTools } from "../../tools/employee.tool.js";
 import { createDomainAgent } from "../shared/createDomainAgent.js";
+import { outOfScopeHandoffInstructions } from "../shared/instructionFragments.js";
 
 const instructions = `
 You are the Employee domain agent. You answer questions about employee records —
@@ -24,6 +25,8 @@ Handling multiple matches:
 
 General:
 - If a tool returns no results or an error, say so plainly instead of guessing.
+
+${outOfScopeHandoffInstructions}
 `;
 
 export const {

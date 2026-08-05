@@ -3,6 +3,8 @@ import {
   orchestratorAgent,
   orchestratorAgentStructured,
 } from "../agents/orchestrator.agent.js";
+import { sensitiveInfoGuardrail } from "../guardrails/sensitiveInfo.guardrail.js";
+import { hallucinationGuardrail } from "../guardrails/hallucination.guardrail.js";
 import type { ConversationMessage } from "../conversation/types.js";
 
 function toInput(history: ConversationMessage[]) {
@@ -11,22 +13,29 @@ function toInput(history: ConversationMessage[]) {
   );
 }
 
-// Streaming, plain-text mode. Function name kept as-is for the controller's
-// sake — under the hood this now enters through the multi-agent Orchestrator,
-// which may hand off to any of the six specialist agents mid-run.
-export async function runEmployeeAgentStream(history: ConversationMessage[]) {
+const OUTPUT_GUARDRAILS = [sensitiveInfoGuardrail, hallucinationGuardrail];
+
+// NOTE: despite the name, this no longer exposes the SDK's raw token-level
+// stream. It fully generates and guardrail-checks the response server-side,
+// then returns the complete, validated text. The controller is responsible
+// for replaying it to the client as a simulated SSE stream — see
+// chat.controller.ts for why this trade was made deliberately.
+export async function runEmployeeAgentStream(
+  history: ConversationMessage[],
+): Promise<string> {
   const input = toInput(history);
-  return run(orchestratorAgent, input, { stream: true });
+  const result = await run(orchestratorAgent, input, {
+    outputGuardrails: OUTPUT_GUARDRAILS,
+  } as any);
+  return result.finalOutput ?? "";
 }
 
-// Structured JSON mode — buffered, no SSE. Same handoff behavior as above,
-// but the entry point (and every specialist it can hand off to) is the
-// structured variant, so the final output always matches StructuredResponseSchema
-// regardless of which agent actually answers.
 export async function runEmployeeAgentStructured(
   history: ConversationMessage[],
 ) {
   const input = toInput(history);
-  const result = await run(orchestratorAgentStructured, input);
+  const result = await run(orchestratorAgentStructured, input, {
+    outputGuardrails: OUTPUT_GUARDRAILS,
+  } as any);
   return result.finalOutput;
 }

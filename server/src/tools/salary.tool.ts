@@ -3,6 +3,10 @@ import { z } from "zod";
 import { salaryServices } from "../services/salary.service.js";
 import { employeeService } from "../services/employee.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
+import {
+  departmentIdGuardrail,
+  employeeIdGuardrail,
+} from "../guardrails/toolMisuse.guardrail.js";
 
 export const getSalariesTool = tool({
   name: "get_salaries",
@@ -24,6 +28,7 @@ export const getSalaryByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_salary_by_employee",
     async (params: { employeeId: string }) => {
@@ -108,6 +113,7 @@ export const getHighestSalaryByDepartmentTool = tool({
   parameters: z.object({
     departmentId: z.string().describe("The department ID, e.g. 'D001'"),
   }),
+  inputGuardrails: [departmentIdGuardrail],
   execute: safeToolExecute(
     "get_highest_salary_by_department",
     async ({ departmentId }) => {
