@@ -8,6 +8,7 @@ import { createDomainAgent } from "../shared/createDomainAgent.js";
 import {
   nameResolutionInstructions,
   departmentResolutionInstructions,
+  outOfScopeHandoffInstructions,
 } from "../shared/instructionFragments.js";
 
 const instructions = `
@@ -25,6 +26,7 @@ Tool selection:
 - For employees within a salary range, use get_employees_by_salary_range.
 ${nameResolutionInstructions}
 ${departmentResolutionInstructions}
+${outOfScopeHandoffInstructions}
 General:
 - If a tool returns no results or an error, say so plainly instead of guessing.
 `;

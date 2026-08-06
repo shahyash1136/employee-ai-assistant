@@ -2,6 +2,7 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { departmentService } from "../services/department.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
+import { departmentIdGuardrail } from "../guardrails/toolMisuse.guardrail.js";
 
 export const getDepartmentsTool = tool({
   name: "get_departments",
@@ -22,6 +23,7 @@ export const getDepartmentByIdTool = tool({
       .string()
       .describe("The Department ID to lookup, e.g. 'D001' "),
   }),
+  inputGuardrails: [departmentIdGuardrail],
   execute: safeToolExecute("get_department_by_id", async ({ departmentId }) => {
     const department = await departmentService.getDepartmentById(departmentId);
     if (!department) {

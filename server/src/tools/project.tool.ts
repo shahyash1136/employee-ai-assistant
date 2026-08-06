@@ -2,6 +2,7 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { projectServices } from "../services/project.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
+import { employeeIdGuardrail } from "../guardrails/toolMisuse.guardrail.js";
 
 export const getProjectsTool = tool({
   name: "get_projects",
@@ -19,6 +20,7 @@ export const getProjectsByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_projects_by_employee",
     async ({ employeeId }: { employeeId: string }) => {

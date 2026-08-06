@@ -4,7 +4,10 @@ import {
   getEmployeeByNameTool,
 } from "../../tools/employee.tool.js";
 import { createDomainAgent } from "../shared/createDomainAgent.js";
-import { nameResolutionInstructions } from "../shared/instructionFragments.js";
+import {
+  nameResolutionInstructions,
+  outOfScopeHandoffInstructions,
+} from "../shared/instructionFragments.js";
 
 const instructions = `
 You are the Attendance domain agent. You answer questions about employee attendance —
@@ -16,6 +19,7 @@ Tool selection:
 - For a specific employee's attendance records, use get_attendance_by_employee.
 - For a specific employee's attendance percentage, use get_attendance_percentage.
 ${nameResolutionInstructions}
+${outOfScopeHandoffInstructions}
 General:
 - If a tool returns no results or an error, say so plainly instead of guessing.
 `;

@@ -2,6 +2,7 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { performanceService } from "../services/performance.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
+import { employeeIdGuardrail } from "../guardrails/toolMisuse.guardrail.js";
 
 export const getPerformanceTool = tool({
   name: "get_performance",
@@ -20,6 +21,7 @@ export const getPerformanceByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_performance_by_employee",
     async ({ employeeId }) => {

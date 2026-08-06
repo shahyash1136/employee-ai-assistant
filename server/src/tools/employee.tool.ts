@@ -2,6 +2,10 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { employeeService } from "../services/employee.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
+import {
+  departmentIdGuardrail,
+  employeeIdGuardrail,
+} from "../guardrails/toolMisuse.guardrail.js";
 
 export const getAllEmployeesTool = tool({
   name: "get_all_employees",
@@ -20,6 +24,7 @@ export const getEmployeeByIdTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute("get_employee_by_id", async ({ employeeId }) => {
     const employee = await employeeService.getEmployeeById(employeeId);
     if (!employee) {
@@ -60,6 +65,7 @@ export const getEmployeesByDepartmentTool = tool({
       .string()
       .describe("The department ID to filter by, e.g. 'D001'"),
   }),
+  inputGuardrails: [departmentIdGuardrail],
   execute: safeToolExecute(
     "get_employees_by_department",
     async ({ departmentId }) => {

@@ -2,6 +2,7 @@ import { tool } from "@openai/agents";
 import { z } from "zod";
 import { attendanceService } from "../services/attendance.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
+import { employeeIdGuardrail } from "../guardrails/toolMisuse.guardrail.js";
 
 export const getAttendanceTool = tool({
   name: "get_attendance",
@@ -20,6 +21,7 @@ export const getAttendanceByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_attendance_by_employee",
     async ({ employeeId }) => {
@@ -42,6 +44,7 @@ export const getAttendancePercentageTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_attendance_percentage",
     async ({ employeeId }) => {

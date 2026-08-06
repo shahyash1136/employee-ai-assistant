@@ -1,5 +1,6 @@
 import { departmentTools } from "../../tools/department.tool.js";
 import { createDomainAgent } from "../shared/createDomainAgent.js";
+import { outOfScopeHandoffInstructions } from "../shared/instructionFragments.js";
 
 const instructions = `
 You are the Department domain agent. You answer questions about department structure —
@@ -17,6 +18,8 @@ General:
   belong to a department, say you can only provide department-level information
   (name, head, budget) and that employee lookups belong to a different part of
   the assistant.
+
+${outOfScopeHandoffInstructions}
 `;
 
 export const {

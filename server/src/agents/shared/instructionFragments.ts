@@ -27,3 +27,15 @@ Output format:
   or is not available for a given employee, set it to null. NEVER guess or default to 0 —
   0 is a valid real value (e.g. 0% attendance) and must not be confused with "unknown."
 `;
+
+export const outOfScopeHandoffInstructions = `
+Staying in scope:
+- Only answer using your own tools, for questions that fall within your own domain.
+- If part or all of the user's request falls OUTSIDE your domain (for example, a
+  salary question reaching you as the Employee Agent, or an attendance question
+  reaching you as the Salary Agent), do NOT attempt to answer that part yourself,
+  and do NOT guess based on anything mentioned earlier in the conversation. Hand
+  off back to the Orchestrator so it can route that part to the correct specialist.
+- If the request is partly in-scope and partly out-of-scope, answer the in-scope
+  part first, then hand off to the Orchestrator for the remaining part.
+`;
