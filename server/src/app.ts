@@ -1,4 +1,6 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./openapi/swagger.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
 import departmentsRoutes from "./routes/departments.route.js";
@@ -6,6 +8,7 @@ import performanceRoutes from "./routes/performance.routes.js";
 import projectsRoutes from "./routes/projects.routes.js";
 import salariesRoutes from "./routes/salaries.routes.js";
 import chatRoute from "./routes/chat.route.js";
+import tracesRoute from "./routes/traces.route.js";
 const app = express();
 
 app.use(express.json());
@@ -23,5 +26,7 @@ app.use("/performance", performanceRoutes);
 app.use("/projects", projectsRoutes);
 app.use("/salaries", salariesRoutes);
 app.use("/chat", chatRoute);
+app.use("/traces", tracesRoute);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export default app;

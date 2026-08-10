@@ -80,7 +80,10 @@ export async function chatController(req: Request, res: Response) {
     if (format === "json") {
       // --- Structured mode: buffered, single JSON response ---
       try {
-        const structuredResponse = await runEmployeeAgentStructured(history);
+        const structuredResponse = await runEmployeeAgentStructured(
+          history,
+          sessionId,
+        );
 
         if (!structuredResponse) {
           return res.status(502).json({
@@ -118,7 +121,7 @@ export async function chatController(req: Request, res: Response) {
     // longer true generation-time streaming.
     let assistantResponse: string;
     try {
-      assistantResponse = await runEmployeeAgentStream(history);
+      assistantResponse = await runEmployeeAgentStream(history, sessionId);
     } catch (agentError) {
       const decline = describeGuardrailFailure(agentError);
       if (decline) {
