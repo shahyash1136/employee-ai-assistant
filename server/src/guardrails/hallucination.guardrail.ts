@@ -1,4 +1,4 @@
-import { Agent, run, defineOutputGuardrail } from "@openai/agents";
+import { Agent, run, type OutputGuardrail } from "@openai/agents";
 import { z } from "zod";
 import type { AgentOutputItem } from "@openai/agents";
 
@@ -69,7 +69,7 @@ Respond with isUngrounded and a one-sentence reason.
   outputType: GroundednessCheckOutput,
 });
 
-export const hallucinationGuardrail = defineOutputGuardrail({
+export const hallucinationGuardrail: OutputGuardrail = {
   name: "Hallucination Prevention Guardrail",
   execute: async ({ agentOutput, context, details }) => {
     const finalText = extractFinalText(agentOutput);
@@ -102,4 +102,4 @@ export const hallucinationGuardrail = defineOutputGuardrail({
       tripwireTriggered: output?.isUngrounded ?? false,
     };
   },
-});
+};

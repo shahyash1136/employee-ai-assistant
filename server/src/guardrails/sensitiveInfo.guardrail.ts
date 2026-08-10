@@ -1,4 +1,4 @@
-import { Agent, run, defineOutputGuardrail } from "@openai/agents";
+import { Agent, run, type OutputGuardrail } from "@openai/agents";
 import { z } from "zod";
 import { employeeTools } from "../tools/employee.tool.js";
 import { attendanceTools } from "../tools/attendance.tool.js";
@@ -69,7 +69,7 @@ Respond with containsSensitiveInfo and a one-sentence reason.
   outputType: SensitivityCheckOutput,
 });
 
-export const sensitiveInfoGuardrail = defineOutputGuardrail({
+export const sensitiveInfoGuardrail: OutputGuardrail = {
   name: "Sensitive Information Guardrail",
   execute: async ({ agentOutput, context }) => {
     const text = extractText(agentOutput);
@@ -90,4 +90,4 @@ export const sensitiveInfoGuardrail = defineOutputGuardrail({
       tripwireTriggered: output?.containsSensitiveInfo ?? false,
     };
   },
-});
+};
