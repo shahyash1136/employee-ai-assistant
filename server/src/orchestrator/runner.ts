@@ -43,9 +43,22 @@ export async function runEmployeeAgentStream(
   // withTrace instead of starting its own.
   return withTrace(
     "Employee Agent Stream",
-    async () => {
-      const result = await runner.run(orchestratorAgent, input);
-      return result.finalOutput ?? "";
+    async (trace) => {
+      // withTrace's own SDK-internal cleanup only calls trace.end() on the
+      // success path — if the callback throws (e.g. a guardrail tripwire),
+      // agents-core's _wrapFunctionWithTraceLifecycle skips trace.end()
+      // entirely, leaving the trace open forever in any processor that
+      // tracks trace state (confirmed by reading that function and by a live
+      // repro: a declined request left endedAt stuck at null in traceStore).
+      // Closing it ourselves guarantees it always ends; Trace.end() is
+      // idempotent, so the SDK's own redundant call on the success path is a
+      // harmless no-op.
+      try {
+        const result = await runner.run(orchestratorAgent, input);
+        return result.finalOutput ?? "";
+      } finally {
+        await trace.end();
+      }
     },
     { groupId: sessionId },
   );
@@ -58,9 +71,13 @@ export async function runEmployeeAgentStructured(
   const input = toInput(history);
   return withTrace(
     "Employee Agent Structured",
-    async () => {
-      const result = await runner.run(orchestratorAgentStructured, input);
-      return result.finalOutput;
+    async (trace) => {
+      try {
+        const result = await runner.run(orchestratorAgentStructured, input);
+        return result.finalOutput;
+      } finally {
+        await trace.end();
+      }
     },
     { groupId: sessionId },
   );

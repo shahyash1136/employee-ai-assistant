@@ -98,7 +98,10 @@ const options: swaggerJsdoc.Options = {
           required: ["sessionId", "message"],
           properties: {
             sessionId: { type: "string", example: "session-123" },
-            message: { type: "string", example: "How many departments are there?" },
+            message: {
+              type: "string",
+              example: "How many departments are there?",
+            },
             format: {
               type: "string",
               enum: ["json", "text"],
@@ -151,7 +154,14 @@ const options: swaggerJsdoc.Options = {
             spanId: { type: "string" },
             spanType: {
               type: "string",
-              enum: ["agent", "function", "generation", "guardrail", "handoff", "response"],
+              enum: [
+                "agent",
+                "function",
+                "generation",
+                "guardrail",
+                "handoff",
+                "response",
+              ],
             },
             startedAt: { type: "string", format: "date-time", nullable: true },
             endedAt: { type: "string", format: "date-time", nullable: true },
@@ -195,19 +205,25 @@ const options: swaggerJsdoc.Options = {
         BadRequest: {
           description: "Invalid request parameters",
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/ApiError" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiError" },
+            },
           },
         },
         NotFound: {
           description: "Resource not found",
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/ApiError" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiError" },
+            },
           },
         },
         ServerError: {
           description: "Unexpected server error",
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/ApiError" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiError" },
+            },
           },
         },
       },
