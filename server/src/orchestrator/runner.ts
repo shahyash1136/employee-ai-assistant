@@ -1,4 +1,12 @@
-import { Runner, user, assistant, withTrace } from "@openai/agents";
+import { randomUUID } from "node:crypto";
+import {
+  Runner,
+  RunState,
+  user,
+  assistant,
+  withTrace,
+  type RunToolApprovalItem,
+} from "@openai/agents";
 import {
   orchestratorAgent,
   orchestratorAgentStructured,
@@ -6,6 +14,10 @@ import {
 import { sensitiveInfoGuardrail } from "../guardrails/sensitiveInfo.guardrail.js";
 import { hallucinationGuardrail } from "../guardrails/hallucination.guardrail.js";
 import type { ConversationMessage } from "../conversation/types.js";
+import {
+  approvalStore,
+  type ApprovalRecord,
+} from "../approvals/approvalStore.js";
 
 function toInput(history: ConversationMessage[]) {
   return history.map((item) =>
@@ -14,48 +26,75 @@ function toInput(history: ConversationMessage[]) {
 }
 
 const OUTPUT_GUARDRAILS = [sensitiveInfoGuardrail, hallucinationGuardrail];
-
-// A plain run(agent, input, { outputGuardrails }) silently drops that option:
-// the free run() function executes against a shared default Runner singleton
-// whose guardrail config is frozen (empty) at first construction, so per-call
-// outputGuardrails never actually run (verified by reading the SDK's
-// run.js and reproducing it — only the Input Safety Guardrail attached
-// directly to the agents was ever firing). A Runner instance carrying the
-// guardrails here is concatenated with whichever agent ends up producing the
-// final output, so it applies regardless of which specialist the orchestrator
-// hands off to.
 const runner = new Runner({ outputGuardrails: OUTPUT_GUARDRAILS });
 
-// NOTE: despite the name, this no longer exposes the SDK's raw token-level
-// stream. It fully generates and guardrail-checks the response server-side,
-// then returns the complete, validated text. The controller is responsible
-// for replaying it to the client as a simulated SSE stream — see
-// chat.controller.ts for why this trade was made deliberately.
+export type RunOutcome<T> =
+  | { status: "completed"; output: T }
+  | {
+      status: "needs_approval";
+      approvalId: string;
+      pendingTool: {
+        name: string;
+        arguments: string | undefined;
+        agentName: string;
+      };
+    };
+
+// Persists a pending approval and returns the outcome chat.controller.ts should
+// respond with. If a turn somehow produces multiple simultaneous interruptions,
+// only the first is surfaced here for display — but the serialized state still
+// carries all of them, and they're all resolved together in resume() below via
+// getInterruptions().
+function recordApproval(
+  result: {
+    interruptions: RunToolApprovalItem[];
+    state: { toString(): string };
+  },
+  sessionId: string,
+  format: "json" | "text",
+): RunOutcome<never> {
+  const interruption = result.interruptions[0]!;
+  const approvalId = randomUUID();
+
+  const record: ApprovalRecord = {
+    approvalId,
+    sessionId,
+    toolName: interruption.name ?? "unknown_tool",
+    toolArguments: interruption.arguments,
+    agentName: interruption.agent.name,
+    serializedState: result.state.toString(),
+    format,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    resolvedAt: null,
+  };
+  approvalStore.create(record);
+
+  return {
+    status: "needs_approval",
+    approvalId,
+    pendingTool: {
+      name: record.toolName,
+      arguments: record.toolArguments,
+      agentName: record.agentName,
+    },
+  };
+}
+
 export async function runEmployeeAgentStream(
   history: ConversationMessage[],
   sessionId: string,
-): Promise<string> {
+): Promise<RunOutcome<string>> {
   const input = toInput(history);
-  // groupId/workflowName must be set via withTrace, not run()'s per-call
-  // options: Runner.run() reads trace config only from what the Runner was
-  // constructed with, so options passed here are silently ignored. run()'s
-  // internal getOrCreateTrace() picks up and reuses the trace started by
-  // withTrace instead of starting its own.
   return withTrace(
     "Employee Agent Stream",
     async (trace) => {
-      // withTrace's own SDK-internal cleanup only calls trace.end() on the
-      // success path — if the callback throws (e.g. a guardrail tripwire),
-      // agents-core's _wrapFunctionWithTraceLifecycle skips trace.end()
-      // entirely, leaving the trace open forever in any processor that
-      // tracks trace state (confirmed by reading that function and by a live
-      // repro: a declined request left endedAt stuck at null in traceStore).
-      // Closing it ourselves guarantees it always ends; Trace.end() is
-      // idempotent, so the SDK's own redundant call on the success path is a
-      // harmless no-op.
       try {
         const result = await runner.run(orchestratorAgent, input);
-        return result.finalOutput ?? "";
+        if (result.interruptions.length > 0) {
+          return recordApproval(result, sessionId, "text");
+        }
+        return { status: "completed", output: result.finalOutput ?? "" };
       } finally {
         await trace.end();
       }
@@ -74,11 +113,89 @@ export async function runEmployeeAgentStructured(
     async (trace) => {
       try {
         const result = await runner.run(orchestratorAgentStructured, input);
-        return result.finalOutput;
+        if (result.interruptions.length > 0) {
+          return recordApproval(result, sessionId, "json");
+        }
+        return { status: "completed" as const, output: result.finalOutput };
       } finally {
         await trace.end();
       }
     },
     { groupId: sessionId },
+  );
+}
+
+export type ResumeOutcome<T> = RunOutcome<T> | { status: "not_found" };
+
+// Resumes a paused run after a human decision. Dispatches to the correct root
+// agent variant (structured vs plain) based on what the original request used
+// — RunState.fromString() requires the SAME agent that originally started the
+// run, since it resolves the whole handoff graph's identifiers against it.
+export async function resumeEmployeeAgent(
+  approvalId: string,
+  decision: { approve: boolean; message?: string },
+): Promise<ResumeOutcome<unknown>> {
+  const record = approvalStore.get(approvalId);
+  if (!record || record.status !== "pending") {
+    return { status: "not_found" };
+  }
+
+  // The type parameter differs per agent variant (plain string output vs a
+  // Zod-typed structured output) so this cast is the one place we bridge that
+  // — safe here because `format` is exactly what recordApproval() stored based
+  // on which variant actually started this run.
+  const rootAgent =
+    record.format === "json" ? orchestratorAgentStructured : orchestratorAgent;
+  const state = await RunState.fromString(
+    rootAgent as any,
+    record.serializedState,
+  );
+
+  // The restored state still references the ORIGINAL trace — which we already
+  // closed via trace.end() in the finally block when the run first paused.
+  // clearTrace() detaches it, confirmed straight from the SDK's own type
+  // declarations: "Use this before resuming a serialized state when the
+  // resumed run should attach to the current ambient trace instead of the
+  // trace persisted in the state." Without this, the resumed run would try to
+  // add spans to a trace that's already ended.
+  state.clearTrace();
+
+  for (const interruption of state.getInterruptions()) {
+    if (decision.approve) {
+      state.approve(interruption);
+    } else {
+      state.reject(
+        interruption,
+        decision.message ? { message: decision.message } : {},
+      );
+    }
+  }
+
+  approvalStore.resolve(
+    approvalId,
+    decision.approve ? "approved" : "rejected",
+    new Date().toISOString(),
+  );
+
+  const traceName =
+    record.format === "json"
+      ? "Employee Agent Structured (resumed)"
+      : "Employee Agent Stream (resumed)";
+
+  return withTrace(
+    traceName,
+    async (trace) => {
+      try {
+        const result = await runner.run(rootAgent as any, state as any);
+        if (result.interruptions.length > 0) {
+          // A second sensitive tool got requested after resuming — pause again.
+          return recordApproval(result, record.sessionId, record.format);
+        }
+        return { status: "completed" as const, output: result.finalOutput };
+      } finally {
+        await trace.end();
+      }
+    },
+    { groupId: record.sessionId },
   );
 }

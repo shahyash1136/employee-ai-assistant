@@ -24,6 +24,8 @@ Tool selection:
   instead of get_highest_salary.
 - For the average salary across all employees, use get_average_salary.
 - For employees within a salary range, use get_employees_by_salary_range.
+- If the user explicitly asks to export, download, or generate a report of salary
+  data, use export_salary_report.
 ${nameResolutionInstructions}
 ${departmentResolutionInstructions}
 ${outOfScopeHandoffInstructions}

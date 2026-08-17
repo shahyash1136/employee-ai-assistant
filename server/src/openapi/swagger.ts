@@ -200,6 +200,22 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        ApprovalSummary: {
+          type: "object",
+          properties: {
+            approvalId: { type: "string" },
+            sessionId: { type: "string" },
+            toolName: { type: "string", example: "export_salary_report" },
+            toolArguments: { type: "string", nullable: true },
+            agentName: { type: "string", example: "Salary Agent" },
+            status: {
+              type: "string",
+              enum: ["pending", "approved", "rejected"],
+            },
+            createdAt: { type: "string", format: "date-time" },
+            resolvedAt: { type: "string", format: "date-time", nullable: true },
+          },
+        },
       },
       responses: {
         BadRequest: {

@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import {
   runEmployeeAgentStream,
   runEmployeeAgentStructured,
+  type RunOutcome,
 } from "../orchestrator/runner.js";
 import { conversationService } from "../conversation/conversation.service.js";
 import {
@@ -13,16 +14,9 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-// Generic wording is deliberate for BOTH input-guardrail categories (scope,
-// injection) — one uniform decline message means a user probing the system
-// can't tell which check they tripped from the response text alone.
 const REQUEST_DECLINED_MESSAGE =
   "I can only help with questions about employees, attendance, departments, salaries, performance, or projects. Could you rephrase your request around one of those topics?";
 
-// Returns a user-facing decline message if `error` is a known guardrail
-// tripwire, or null if it's some other error the caller should handle as a
-// genuine failure. Shared between the structured and streaming branches
-// below, since both now run the agent to completion before responding.
 function describeGuardrailFailure(error: unknown): string | null {
   if (error instanceof InputGuardrailTripwireTriggered) {
     console.warn(
@@ -48,7 +42,25 @@ function describeGuardrailFailure(error: unknown): string | null {
   return null;
 }
 
-const REPLAY_CHUNK_SIZE = 4; // characters per simulated "token"
+// Shared by both response formats: turns a "needs_approval" outcome into the
+// JSON payload the client sees, and never enters the SSE replay path — a
+// pending approval is an exceptional state, same treatment as a guardrail
+// decline gets below.
+function approvalRequiredPayload(
+  outcome: Extract<RunOutcome<unknown>, { status: "needs_approval" }>,
+) {
+  return {
+    success: true,
+    requiresApproval: true,
+    approvalId: outcome.approvalId,
+    message:
+      "This action requires approval before I can continue. " +
+      `(approvalId: ${outcome.approvalId})`,
+    pendingTool: outcome.pendingTool,
+  };
+}
+
+const REPLAY_CHUNK_SIZE = 4;
 const REPLAY_CHUNK_DELAY_MS = 15;
 
 function sleep(ms: number) {
@@ -80,12 +92,13 @@ export async function chatController(req: Request, res: Response) {
     if (format === "json") {
       // --- Structured mode: buffered, single JSON response ---
       try {
-        const structuredResponse = await runEmployeeAgentStructured(
-          history,
-          sessionId,
-        );
+        const outcome = await runEmployeeAgentStructured(history, sessionId);
 
-        if (!structuredResponse) {
+        if (outcome.status === "needs_approval") {
+          return res.json(approvalRequiredPayload(outcome));
+        }
+
+        if (!outcome.output) {
           return res.status(502).json({
             success: false,
             message:
@@ -95,9 +108,9 @@ export async function chatController(req: Request, res: Response) {
 
         conversationService.addAssistantMessage(
           sessionId,
-          JSON.stringify(structuredResponse),
+          JSON.stringify(outcome.output),
         );
-        return res.json({ success: true, response: structuredResponse });
+        return res.json({ success: true, response: outcome.output });
       } catch (agentError) {
         const decline = describeGuardrailFailure(agentError);
         if (decline) {
@@ -116,12 +129,9 @@ export async function chatController(req: Request, res: Response) {
     }
 
     // --- Default: streaming plain-text mode ---
-    // Fully generated and guardrail-checked BEFORE anything is written to
-    // the response. See runner.ts / Concept Explanation for why this is no
-    // longer true generation-time streaming.
-    let assistantResponse: string;
+    let outcome: RunOutcome<string>;
     try {
-      assistantResponse = await runEmployeeAgentStream(history, sessionId);
+      outcome = await runEmployeeAgentStream(history, sessionId);
     } catch (agentError) {
       const decline = describeGuardrailFailure(agentError);
       if (decline) {
@@ -137,8 +147,11 @@ export async function chatController(req: Request, res: Response) {
       });
     }
 
-    // Everything above this line either succeeded fully or returned early.
-    // Nothing unvalidated can reach the code below.
+    if (outcome.status === "needs_approval") {
+      return res.json(approvalRequiredPayload(outcome));
+    }
+
+    const assistantResponse = outcome.output;
     conversationService.addAssistantMessage(sessionId, assistantResponse);
 
     res.setHeader("Content-Type", "text/event-stream");
