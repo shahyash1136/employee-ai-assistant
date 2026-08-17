@@ -214,6 +214,7 @@ const options: swaggerJsdoc.Options = {
             },
             createdAt: { type: "string", format: "date-time" },
             resolvedAt: { type: "string", format: "date-time", nullable: true },
+            format: { type: "string", enum: ["json", "text"] },
           },
         },
       },
@@ -253,3 +254,4 @@ const options: swaggerJsdoc.Options = {
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
+console.log("Swagger paths:", Object.keys((swaggerSpec as any).paths ?? {}));

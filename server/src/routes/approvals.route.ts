@@ -1,3 +1,4 @@
+// server/src/routes/approvals.route.ts
 import { Router } from "express";
 import {
   listApprovals,
@@ -70,7 +71,9 @@ router.get("/", listApprovals);
  *               type: object
  *               properties:
  *                 success: { type: boolean, example: true }
- *                 response: {}
+ *                 response:
+ *                   type: object
+ *                   additionalProperties: true
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       404:
