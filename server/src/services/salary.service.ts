@@ -51,6 +51,23 @@ export class SalaryServices {
       current.ctc > highest.ctc ? current : highest,
     );
   }
+
+  async generateSalaryReport(): Promise<{
+    reportId: string;
+    generatedAt: string;
+    recordCount: number;
+    downloadUrl: string;
+  }> {
+    const salaries = await this.getSalaries();
+    const reportId = `report_${Date.now()}`;
+    return {
+      reportId,
+      generatedAt: new Date().toISOString(),
+      recordCount: salaries.length,
+      // Simulated — a real implementation would generate and upload an actual file.
+      downloadUrl: `/reports/${reportId}.csv`,
+    };
+  }
 }
 
 export const salaryServices = new SalaryServices();

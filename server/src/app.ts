@@ -9,6 +9,7 @@ import projectsRoutes from "./routes/projects.routes.js";
 import salariesRoutes from "./routes/salaries.routes.js";
 import chatRoute from "./routes/chat.route.js";
 import tracesRoute from "./routes/traces.route.js";
+import approvalsRoute from "./routes/approvals.route.js";
 const app = express();
 
 app.use(express.json());
@@ -27,6 +28,7 @@ app.use("/projects", projectsRoutes);
 app.use("/salaries", salariesRoutes);
 app.use("/chat", chatRoute);
 app.use("/traces", tracesRoute);
+app.use("/approvals", approvalsRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export default app;

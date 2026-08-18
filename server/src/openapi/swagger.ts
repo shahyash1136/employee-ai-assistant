@@ -200,6 +200,23 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        ApprovalSummary: {
+          type: "object",
+          properties: {
+            approvalId: { type: "string" },
+            sessionId: { type: "string" },
+            toolName: { type: "string", example: "export_salary_report" },
+            toolArguments: { type: "string", nullable: true },
+            agentName: { type: "string", example: "Salary Agent" },
+            status: {
+              type: "string",
+              enum: ["pending", "approved", "rejected"],
+            },
+            createdAt: { type: "string", format: "date-time" },
+            resolvedAt: { type: "string", format: "date-time", nullable: true },
+            format: { type: "string", enum: ["json", "text"] },
+          },
+        },
       },
       responses: {
         BadRequest: {
@@ -237,3 +254,4 @@ const options: swaggerJsdoc.Options = {
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
+console.log("Swagger paths:", Object.keys((swaggerSpec as any).paths ?? {}));

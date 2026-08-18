@@ -12,6 +12,7 @@ export const getSalariesTool = tool({
   name: "get_salaries",
   description: "Returns all salaries from the salaries CSV file.",
   parameters: z.object({}),
+  needsApproval: true, // bulk compensation data — always requires sign-off
   execute: safeToolExecute("get_salaries", async () => {
     const salaries = await salaryServices.getSalaries();
     if (salaries.length === 0) {
@@ -28,6 +29,7 @@ export const getSalaryByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
+  // NOT gated: a single employee's own record is routine, not a bulk-exposure risk
   inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_salary_by_employee",
@@ -50,6 +52,7 @@ export const getHighestSalaryTool = tool({
   description:
     "Returns the salary details of the employee with the highest salary.",
   parameters: z.object({}),
+  needsApproval: true, // comparative across all employees
   execute: safeToolExecute("get_highest_salary", async () => {
     const highestSalary = await salaryServices.getHighestSalary();
     if (!highestSalary) {
@@ -63,6 +66,7 @@ export const getAverageSalaryTool = tool({
   name: "get_average_salary",
   description: "Returns the average salary across all employees.",
   parameters: z.object({}),
+  needsApproval: true, // aggregate across all employees
   execute: safeToolExecute("get_average_salary", async () => {
     const salaries = await salaryServices.getSalaries();
     if (salaries.length === 0) {
@@ -81,6 +85,7 @@ export const getEmployeesBySalaryRangeTool = tool({
     minSalary: z.number().describe("The minimum salary in the range."),
     maxSalary: z.number().describe("The maximum salary in the range."),
   }),
+  needsApproval: true, // comparative across employees
   execute: safeToolExecute(
     "get_employees_by_salary_range",
     async (params: { minSalary: number; maxSalary: number }) => {
@@ -113,6 +118,7 @@ export const getHighestSalaryByDepartmentTool = tool({
   parameters: z.object({
     departmentId: z.string().describe("The department ID, e.g. 'D001'"),
   }),
+  needsApproval: true, // comparative within a department
   inputGuardrails: [departmentIdGuardrail],
   execute: safeToolExecute(
     "get_highest_salary_by_department",
@@ -145,6 +151,20 @@ export const getHighestSalaryByDepartmentTool = tool({
   ),
 });
 
+export const exportSalaryReportTool = tool({
+  name: "export_salary_report",
+  description:
+    "Generates a downloadable export of the full salary dataset for offline review. " +
+    "Use only when the user explicitly asks to export, download, or generate a report " +
+    "of salary data — not for answering a normal question.",
+  parameters: z.object({}),
+  needsApproval: true, // always — this is the clearest "sensitive action" in the system
+  execute: safeToolExecute("export_salary_report", async () => {
+    const report = await salaryServices.generateSalaryReport();
+    return JSON.stringify(report);
+  }),
+});
+
 export const salaryTools = [
   getSalariesTool,
   getSalaryByEmployeeTool,
@@ -152,4 +172,5 @@ export const salaryTools = [
   getAverageSalaryTool,
   getEmployeesBySalaryRangeTool,
   getHighestSalaryByDepartmentTool,
+  exportSalaryReportTool,
 ];
