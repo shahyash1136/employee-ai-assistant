@@ -1,17 +1,32 @@
-import { tool } from "@openai/agents";
+import { tool, type RunContext } from "@openai/agents";
 import { z } from "zod";
 import { performanceService } from "../services/performance.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
 import { employeeIdGuardrail } from "../guardrails/toolMisuse.guardrail.js";
+import type { AuthTokenPayload } from "../types/user.js";
+
+const PERMISSION_DENIED = JSON.stringify({
+  error: "You don't have permission to view company-wide performance data.",
+});
 
 export const getPerformanceTool = tool({
   name: "get_performance",
   description: "Returns all performance records from the performance CSV file.",
   parameters: z.object({}),
-  execute: safeToolExecute("get_performance", async () => {
-    const performance = await performanceService.getPerformance();
-    return JSON.stringify(performance);
-  }),
+  execute: safeToolExecute(
+    "get_performance",
+    async (_params: {}, context?: RunContext<AuthTokenPayload>) => {
+      // Bulk/comparative performance data — same tier of sensitivity as bulk
+      // salary, but enforced as a straightforward role check rather than an
+      // approval pause: this is about WHO is allowed to see it at all, not a
+      // sign-off workflow like the salary export tool from Part 8.
+      if (context?.context && context.context.role === "employee") {
+        return PERMISSION_DENIED;
+      }
+      const performance = await performanceService.getPerformance();
+      return JSON.stringify(performance);
+    },
+  ),
 });
 
 export const getPerformanceByEmployeeTool = tool({
@@ -24,7 +39,17 @@ export const getPerformanceByEmployeeTool = tool({
   inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_performance_by_employee",
-    async ({ employeeId }) => {
+    async (
+      { employeeId }: { employeeId: string },
+      context?: RunContext<AuthTokenPayload>,
+    ) => {
+      const user = context?.context;
+      if (user?.role === "employee" && user.employeeId !== employeeId) {
+        return JSON.stringify({
+          error: "You can only view your own performance records.",
+        });
+      }
+
       const records =
         await performanceService.getPerformanceByEmployee(employeeId);
       if (records.length === 0) {
@@ -49,7 +74,13 @@ export const getTopPerformersTool = tool({
   }),
   execute: safeToolExecute(
     "get_top_performers",
-    async ({ minRating }: { minRating: number }) => {
+    async (
+      { minRating }: { minRating: number },
+      context?: RunContext<AuthTokenPayload>,
+    ) => {
+      if (context?.context && context.context.role === "employee") {
+        return PERMISSION_DENIED;
+      }
       const topPerformers =
         await performanceService.getTopPerformers(minRating);
       if (topPerformers.length === 0) {

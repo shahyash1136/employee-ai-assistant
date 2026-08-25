@@ -1,0 +1,8 @@
+userId,employeeId,username,passwordHash,role
+U001,E001,admin,$2b$10$O/vK/XMKE0meVXUc4xk8P.LTElQtUwdzJtdrnX5IAoLTwcrFHjrxG,admin
+U002,E009,manager1,$2b$10$6.k4qBv2lPAlZF.RzSExZeU5wTzmNj3i5NPpKiYNRhT7ADkDzZJO2,manager
+U003,E013,manager2,$2b$10$6.k4qBv2lPAlZF.RzSExZeU5wTzmNj3i5NPpKiYNRhT7ADkDzZJO2,manager
+U004,E002,employee1,$2b$10$2ctZfLHKn.udkR3kT6/hI.k9hKznqIVIR3k9JUdjlOeACfYw60bGW,employee
+U005,E004,employee2,$2b$10$2ctZfLHKn.udkR3kT6/hI.k9hKznqIVIR3k9JUdjlOeACfYw60bGW,employee
+U006,E005,employee3,$2b$10$2ctZfLHKn.udkR3kT6/hI.k9hKznqIVIR3k9JUdjlOeACfYw60bGW,employee
+U007,E011,employee4,$2b$10$2ctZfLHKn.udkR3kT6/hI.k9hKznqIVIR3k9JUdjlOeACfYw60bGW,employee

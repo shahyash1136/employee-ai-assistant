@@ -70,6 +70,17 @@ function sleep(ms: number) {
 export async function chatController(req: Request, res: Response) {
   const { sessionId, message, format } = req.body;
 
+  // Defensive check — the global `authenticate` middleware (mounted in
+  // app.ts) should already guarantee req.user exists by the time any route
+  // handler runs, but chatController doesn't silently assume that stays true
+  // forever as routes get refactored.
+  if (!req.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+  const user = req.user;
+
   if (!isNonEmptyString(sessionId) || !isNonEmptyString(message)) {
     return res.status(400).json({
       success: false,
@@ -92,7 +103,11 @@ export async function chatController(req: Request, res: Response) {
     if (format === "json") {
       // --- Structured mode: buffered, single JSON response ---
       try {
-        const outcome = await runEmployeeAgentStructured(history, sessionId);
+        const outcome = await runEmployeeAgentStructured(
+          history,
+          sessionId,
+          user,
+        );
 
         if (outcome.status === "needs_approval") {
           return res.json(approvalRequiredPayload(outcome));
@@ -131,7 +146,7 @@ export async function chatController(req: Request, res: Response) {
     // --- Default: streaming plain-text mode ---
     let outcome: RunOutcome<string>;
     try {
-      outcome = await runEmployeeAgentStream(history, sessionId);
+      outcome = await runEmployeeAgentStream(history, sessionId, user);
     } catch (agentError) {
       const decline = describeGuardrailFailure(agentError);
       if (decline) {
