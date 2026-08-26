@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { listTraces, getTrace } from "../controllers/traces.controller.js";
+import { requireRole } from "../middleware/authorize.js";
 
 const router = Router();
 
@@ -12,6 +13,7 @@ const router = Router();
  *       Backed by a capped, in-memory store (last 200 traces) — data does not
  *       survive a server restart.
  *     tags: [Traces]
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: query
  *         name: sessionId
@@ -33,8 +35,13 @@ const router = Router();
  *                 data:
  *                   type: array
  *                   items: { $ref: '#/components/schemas/TraceSummary' }
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  */
-router.get("/", listTraces);
+router.get("/", requireRole(["manager", "admin"]), listTraces);
 
 /**
  * @openapi
@@ -42,6 +49,7 @@ router.get("/", listTraces);
  *   get:
  *     summary: Get full span detail for one trace
  *     tags: [Traces]
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: traceId
@@ -57,9 +65,14 @@ router.get("/", listTraces);
  *               properties:
  *                 success: { type: boolean, example: true }
  *                 data: { $ref: '#/components/schemas/TraceRecord' }
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.get("/:traceId", getTrace);
+router.get("/:traceId", requireRole(["manager", "admin"]), getTrace);
 
 export default router;

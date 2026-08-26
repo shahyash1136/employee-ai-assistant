@@ -1,6 +1,8 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./openapi/swagger.js";
+import { authenticate } from "./middleware/authenticate.js";
+import authRoute from "./routes/auth.route.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
 import departmentsRoutes from "./routes/departments.route.js";
@@ -20,6 +22,17 @@ app.get("/", (req, res) => {
   });
 });
 
+// Public: issuing a token, obviously, can't require one.
+app.use("/auth", authRoute);
+// Docs page itself stays public — reading the API's shape shouldn't require
+// login. Swagger UI's own "Authorize" button (added via the bearerAuth
+// security scheme) is what lets someone paste a token in to actually call
+// endpoints from the docs page.
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Everything mounted below this line requires a valid Bearer token.
+app.use(authenticate);
+
 app.use("/attendance", attendanceRoutes);
 app.use("/departments", departmentsRoutes);
 app.use("/employees", employeeRoutes);
@@ -29,6 +42,5 @@ app.use("/salaries", salariesRoutes);
 app.use("/chat", chatRoute);
 app.use("/traces", tracesRoute);
 app.use("/approvals", approvalsRoute);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export default app;

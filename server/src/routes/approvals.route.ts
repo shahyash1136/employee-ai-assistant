@@ -1,9 +1,9 @@
-// server/src/routes/approvals.route.ts
 import { Router } from "express";
 import {
   listApprovals,
   decideApproval,
 } from "../controllers/approvals.controller.js";
+import { requireRole } from "../middleware/authorize.js";
 
 const router = Router();
 
@@ -16,6 +16,7 @@ const router = Router();
  *       Backed by a capped, in-memory store (last 200 approvals) — data does
  *       not survive a server restart.
  *     tags: [Approvals]
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: query
  *         name: sessionId
@@ -36,8 +37,13 @@ const router = Router();
  *                 data:
  *                   type: array
  *                   items: { $ref: '#/components/schemas/ApprovalSummary' }
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  */
-router.get("/", listApprovals);
+router.get("/", requireRole(["manager", "admin"]), listApprovals);
 
 /**
  * @openapi
@@ -45,6 +51,7 @@ router.get("/", listApprovals);
  *   post:
  *     summary: Approve or reject a paused tool call and resume the run
  *     tags: [Approvals]
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: approvalId
@@ -76,6 +83,11 @@ router.get("/", listApprovals);
  *                   additionalProperties: true
  *       400:
  *         $ref: '#/components/responses/BadRequest'
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       404:
  *         $ref: '#/components/responses/NotFound'
  *       409:
@@ -84,6 +96,10 @@ router.get("/", listApprovals);
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiError' }
  */
-router.post("/:approvalId/decision", decideApproval);
+router.post(
+  "/:approvalId/decision",
+  requireRole(["manager", "admin"]),
+  decideApproval,
+);
 
 export default router;

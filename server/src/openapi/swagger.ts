@@ -15,7 +15,15 @@ const options: swaggerJsdoc.Options = {
         "project data, the AI chat assistant, and its execution traces.",
     },
     servers: [{ url: "/", description: "This server" }],
+    security: [{ bearerAuth: [] }], // applies globally; auth.route.ts overrides with security: []
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
       schemas: {
         ApiError: {
           type: "object",

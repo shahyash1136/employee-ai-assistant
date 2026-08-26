@@ -7,6 +7,8 @@ import {
   departmentIdGuardrail,
   employeeIdGuardrail,
 } from "../guardrails/toolMisuse.guardrail.js";
+import type { RunContext } from "@openai/agents";
+import type { AuthTokenPayload } from "../types/user.js";
 
 export const getSalariesTool = tool({
   name: "get_salaries",
@@ -29,11 +31,23 @@ export const getSalaryByEmployeeTool = tool({
   parameters: z.object({
     employeeId: z.string().describe("The employee ID to look up, e.g. 'E001'"),
   }),
-  // NOT gated: a single employee's own record is routine, not a bulk-exposure risk
   inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_salary_by_employee",
-    async (params: { employeeId: string }) => {
+    async (
+      params: { employeeId: string },
+      context?: RunContext<AuthTokenPayload>,
+    ) => {
+      const user = context?.context;
+      // 'employee' role can only look up their own record. Managers/admins,
+      // and any run where auth context wasn't supplied (e.g. an internal
+      // classifier call), are unrestricted.
+      if (user?.role === "employee" && user.employeeId !== params.employeeId) {
+        return JSON.stringify({
+          error: "You can only view your own salary information.",
+        });
+      }
+
       const salary = await salaryServices.getSalaryByEmployee(
         params.employeeId,
       );

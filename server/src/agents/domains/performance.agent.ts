@@ -1,15 +1,17 @@
+import type { RunContext } from "@openai/agents";
 import { performanceTools } from "../../tools/performance.tool.js";
 import {
   getEmployeeByIdTool,
   getEmployeeByNameTool,
 } from "../../tools/employee.tool.js";
 import { createDomainAgent } from "../shared/createDomainAgent.js";
+import type { AuthTokenPayload } from "../../types/user.js";
 import {
   nameResolutionInstructions,
   outOfScopeHandoffInstructions,
 } from "../shared/instructionFragments.js";
 
-const instructions = `
+const baseInstructions = `
 You are the Performance domain agent. You answer questions about performance reviews —
 ratings, review comments, promotion eligibility, and top performers — using only the
 tools provided. Never make up data; always call a tool before answering.
@@ -26,11 +28,25 @@ General:
 ${outOfScopeHandoffInstructions}
 `;
 
+// Injects the authenticated user's identity into the system prompt, since the
+// `context` object passed to run() is only visible inside tool execute()
+// functions by default — the model has no way to know who "my"/"me" refers
+// to unless it's told explicitly here.
+function buildInstructions(runContext: RunContext<AuthTokenPayload>): string {
+  const user = runContext.context;
+  const identityNote = user
+    ? `\nThe current authenticated user's employee ID is ${user.employeeId} (role: ${user.role}). ` +
+      `When they refer to "my", "me", or "I" (e.g. "what's my performance rating"), use employee ID ` +
+      `${user.employeeId} directly for the relevant tool call — do not ask them for their ID.\n`
+    : "";
+  return baseInstructions + identityNote;
+}
+
 export const {
   agent: performanceAgent,
   structuredAgent: performanceAgentStructured,
-} = createDomainAgent({
+} = createDomainAgent<AuthTokenPayload>({
   name: "Performance Agent",
-  instructions,
+  instructions: buildInstructions,
   tools: [...performanceTools, getEmployeeByIdTool, getEmployeeByNameTool],
 });

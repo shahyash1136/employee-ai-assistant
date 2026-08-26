@@ -18,6 +18,7 @@ import {
   approvalStore,
   type ApprovalRecord,
 } from "../approvals/approvalStore.js";
+import type { AuthTokenPayload } from "../types/user.js";
 
 function toInput(history: ConversationMessage[]) {
   return history.map((item) =>
@@ -84,13 +85,16 @@ function recordApproval(
 export async function runEmployeeAgentStream(
   history: ConversationMessage[],
   sessionId: string,
+  user: AuthTokenPayload,
 ): Promise<RunOutcome<string>> {
   const input = toInput(history);
   return withTrace(
     "Employee Agent Stream",
     async (trace) => {
       try {
-        const result = await runner.run(orchestratorAgent, input);
+        const result = await runner.run(orchestratorAgent, input, {
+          context: user,
+        });
         if (result.interruptions.length > 0) {
           return recordApproval(result, sessionId, "text");
         }
@@ -106,13 +110,16 @@ export async function runEmployeeAgentStream(
 export async function runEmployeeAgentStructured(
   history: ConversationMessage[],
   sessionId: string,
+  user: AuthTokenPayload,
 ) {
   const input = toInput(history);
   return withTrace(
     "Employee Agent Structured",
     async (trace) => {
       try {
-        const result = await runner.run(orchestratorAgentStructured, input);
+        const result = await runner.run(orchestratorAgentStructured, input, {
+          context: user,
+        });
         if (result.interruptions.length > 0) {
           return recordApproval(result, sessionId, "json");
         }

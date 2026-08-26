@@ -6,6 +6,10 @@ import {
   getEmployeesBySalaryRange,
   getSalaryByEmployee,
 } from "../controllers/salaries.controller.js";
+import {
+  requireRole,
+  requireOwnRecordOrRole,
+} from "../middleware/authorize.js";
 
 const router = Router();
 
@@ -15,6 +19,7 @@ const router = Router();
  *   get:
  *     summary: List all salary records
  *     tags: [Salaries]
+ *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200:
  *         description: List of salary records
@@ -27,10 +32,15 @@ const router = Router();
  *                 data:
  *                   type: array
  *                   items: { $ref: '#/components/schemas/Salary' }
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/", getSalaries);
+router.get("/", requireRole(["manager", "admin"]), getSalaries);
 
 /**
  * @openapi
@@ -38,6 +48,7 @@ router.get("/", getSalaries);
  *   get:
  *     summary: Get the highest salary record
  *     tags: [Salaries]
+ *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200:
  *         description: The highest salary record
@@ -48,12 +59,17 @@ router.get("/", getSalaries);
  *               properties:
  *                 success: { type: boolean, example: true }
  *                 data: { $ref: '#/components/schemas/Salary' }
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       404:
  *         $ref: '#/components/responses/NotFound'
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/highest", getHighestSalary); // GET /salaries/highest
+router.get("/highest", requireRole(["manager", "admin"]), getHighestSalary); // GET /salaries/highest
 
 /**
  * @openapi
@@ -61,6 +77,7 @@ router.get("/highest", getHighestSalary); // GET /salaries/highest
  *   get:
  *     summary: Get the average CTC across all employees
  *     tags: [Salaries]
+ *     security: [{ bearerAuth: [] }]
  *     responses:
  *       200:
  *         description: Average CTC
@@ -74,10 +91,15 @@ router.get("/highest", getHighestSalary); // GET /salaries/highest
  *                   type: object
  *                   properties:
  *                     averageCTC: { type: number }
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/average", getAverageSalary); // GET /salaries/average
+router.get("/average", requireRole(["manager", "admin"]), getAverageSalary); // GET /salaries/average
 
 /**
  * @openapi
@@ -85,6 +107,7 @@ router.get("/average", getAverageSalary); // GET /salaries/average
  *   get:
  *     summary: List employees with CTC within a range
  *     tags: [Salaries]
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: query
  *         name: min
@@ -108,17 +131,30 @@ router.get("/average", getAverageSalary); // GET /salaries/average
  *                   items: { $ref: '#/components/schemas/Salary' }
  *       400:
  *         $ref: '#/components/responses/BadRequest'
+ *       403:
+ *         description: Requires manager or admin role
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/range", getEmployeesBySalaryRange); // GET /salaries/range?min=500000&max=1000000
+router.get(
+  "/range",
+  requireRole(["manager", "admin"]),
+  getEmployeesBySalaryRange,
+); // GET /salaries/range?min=500000&max=1000000
 
 /**
  * @openapi
  * /salaries/{employeeId}:
  *   get:
  *     summary: Get a single employee's salary record
+ *     description: >
+ *       An 'employee' role may only request their own employeeId; manager
+ *       and admin roles can request any employeeId.
  *     tags: [Salaries]
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: employeeId
@@ -136,11 +172,20 @@ router.get("/range", getEmployeesBySalaryRange); // GET /salaries/range?min=5000
  *                 data: { $ref: '#/components/schemas/Salary' }
  *       400:
  *         $ref: '#/components/responses/BadRequest'
+ *       403:
+ *         description: Employees may only view their own salary record
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/ApiError' }
  *       404:
  *         $ref: '#/components/responses/NotFound'
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/:employeeId", getSalaryByEmployee); // GET /salaries/E001 — keep LAST
+router.get(
+  "/:employeeId",
+  requireOwnRecordOrRole(["manager", "admin"]),
+  getSalaryByEmployee,
+); // GET /salaries/E001 — keep LAST
 
 export default router;
