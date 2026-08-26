@@ -13,9 +13,11 @@ interface UserCsvRow {
 
 // Fails loudly at startup rather than silently signing tokens with an
 // undefined secret if the env var is missing.
-const JWT_SECRET: string = process.env.JWT_SECRET ?? (() => {
-  throw new Error("JWT_SECRET environment variable is required");
-})();
+const JWT_SECRET: string =
+  process.env.JWT_SECRET ??
+  (() => {
+    throw new Error("JWT_SECRET environment variable is required");
+  })();
 
 const TOKEN_EXPIRY = "1h";
 

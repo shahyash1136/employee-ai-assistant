@@ -1,3 +1,4 @@
+import type { RunContext } from "@openai/agents";
 import { salaryTools } from "../../tools/salary.tool.js";
 import {
   getEmployeeByIdTool,
@@ -5,13 +6,14 @@ import {
 } from "../../tools/employee.tool.js";
 import { getDepartmentByNameTool } from "../../tools/department.tool.js";
 import { createDomainAgent } from "../shared/createDomainAgent.js";
+import type { AuthTokenPayload } from "../../types/user.js";
 import {
   nameResolutionInstructions,
   departmentResolutionInstructions,
   outOfScopeHandoffInstructions,
 } from "../shared/instructionFragments.js";
 
-const instructions = `
+const baseInstructions = `
 You are the Salary domain agent. You answer questions about compensation — individual
 salaries, highest/average salary company-wide or within a department, and salary range
 lookups — using only the tools provided. Never make up data; always call a tool before
@@ -33,10 +35,24 @@ General:
 - If a tool returns no results or an error, say so plainly instead of guessing.
 `;
 
+// Injects the authenticated user's identity into the system prompt, since the
+// `context` object passed to run() is only visible inside tool execute()
+// functions by default — the model has no way to know who "my"/"me" refers
+// to unless it's told explicitly here.
+function buildInstructions(runContext: RunContext<AuthTokenPayload>): string {
+  const user = runContext.context;
+  const identityNote = user
+    ? `\nThe current authenticated user's employee ID is ${user.employeeId} (role: ${user.role}). ` +
+      `When they refer to "my", "me", or "I" (e.g. "what's my salary"), use employee ID ` +
+      `${user.employeeId} directly for the relevant tool call — do not ask them for their ID.\n`
+    : "";
+  return baseInstructions + identityNote;
+}
+
 export const { agent: salaryAgent, structuredAgent: salaryAgentStructured } =
-  createDomainAgent({
+  createDomainAgent<AuthTokenPayload>({
     name: "Salary Agent",
-    instructions,
+    instructions: buildInstructions,
     tools: [
       ...salaryTools,
       getEmployeeByIdTool,
