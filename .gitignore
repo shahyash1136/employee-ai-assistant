@@ -1,3 +1,9 @@
 *docs
 *node_modules
 *.env
+
+# Runtime SQLite database (conversations, traces, approvals) + WAL sidecars.
+# Generated at runtime — not seed data like the CSVs.
+data/app.db
+data/app.db-wal
+data/app.db-shm

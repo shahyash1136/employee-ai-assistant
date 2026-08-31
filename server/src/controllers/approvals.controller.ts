@@ -33,6 +33,11 @@ export const decideApproval = async (req: Request, res: Response) => {
       .status(404)
       .json({ success: false, message: "Approval not found" });
   }
+
+  // No session-ownership check here on purpose: the whole point of HITL is
+  // that a *different* person (a manager/admin) signs off on an employee's
+  // paused action. Access is gated by requireRole(["manager","admin"]) on the
+  // route — that's the correct and sufficient rule for deciding approvals.
   if (existing.status !== "pending") {
     return res.status(409).json({
       success: false,
@@ -63,7 +68,16 @@ export const decideApproval = async (req: Request, res: Response) => {
     typeof outcome.output === "string"
       ? outcome.output
       : JSON.stringify(outcome.output);
-  conversationService.addAssistantMessage(existing.sessionId, responseText);
+  // The resumed turn's reply belongs to the same session; attribute it to
+  // whoever owns that session (the deciding manager is not that person).
+  const ownerId = conversationService.getSessionOwner(existing.sessionId);
+  if (ownerId) {
+    conversationService.addAssistantMessage(
+      existing.sessionId,
+      ownerId,
+      responseText,
+    );
+  }
 
   res.json({ success: true, response: outcome.output });
 };

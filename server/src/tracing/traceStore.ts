@@ -1,3 +1,5 @@
+import { db } from "../db/database.js";
+
 export interface SpanRecord {
   spanId: string;
   spanType: string;
@@ -49,61 +51,139 @@ function summarize(trace: TraceRecord): TraceSummary {
   };
 }
 
-// Capped, in-memory, mirrors the pattern already used by SessionStore for
-// conversations. Data does not survive a server restart — this is a local
-// dev/demo store, not a durability layer.
+// SQLite-backed, capped. Column set covers the stable span fields; everything
+// else the processor summarizes (name, triggered, model, usage, handoff
+// endpoints, ...) rides along in the `extra` JSON column and is spread back
+// out on read, so SpanRecord looks identical to callers.
 const MAX_TRACES = 200;
 
-export class TraceStore {
-  private traces = new Map<string, TraceRecord>();
-  private insertionOrder: string[] = [];
+interface TraceRow {
+  trace_id: string;
+  name: string;
+  session_id: string | null;
+  started_at: string;
+  ended_at: string | null;
+}
 
-  startTrace(traceId: string, name: string, sessionId: string | null, startedAt: string) {
-    this.traces.set(traceId, {
-      traceId,
-      name,
-      sessionId,
-      startedAt,
-      endedAt: null,
-      spans: [],
-    });
-    this.insertionOrder.push(traceId);
-    this.prune();
+interface SpanRow {
+  span_id: string;
+  trace_id: string;
+  span_type: string;
+  started_at: string | null;
+  ended_at: string | null;
+  error: string | null;
+  extra: string;
+}
+
+const insertTrace = db.prepare(
+  `INSERT INTO traces (trace_id, name, session_id, started_at, ended_at)
+   VALUES (?, ?, ?, ?, NULL)
+   ON CONFLICT(trace_id) DO NOTHING`,
+);
+
+const updateTraceEnd = db.prepare(
+  `UPDATE traces SET ended_at = ? WHERE trace_id = ?`,
+);
+
+const insertSpan = db.prepare(
+  `INSERT INTO spans (span_id, trace_id, span_type, started_at, ended_at, error, extra)
+   VALUES (?, ?, ?, ?, ?, ?, ?)`,
+);
+
+const selectTrace = db.prepare(`SELECT * FROM traces WHERE trace_id = ?`);
+
+const selectSpans = db.prepare(
+  `SELECT * FROM spans WHERE trace_id = ? ORDER BY id ASC`,
+);
+
+const selectTracesAll = db.prepare(
+  `SELECT * FROM traces ORDER BY id DESC LIMIT ?`,
+);
+
+const selectTracesBySession = db.prepare(
+  `SELECT * FROM traces WHERE session_id = ? ORDER BY id DESC LIMIT ?`,
+);
+
+const pruneTraces = db.prepare(
+  `DELETE FROM traces
+   WHERE id NOT IN (SELECT id FROM traces ORDER BY id DESC LIMIT ?)`,
+);
+
+const pruneSpans = db.prepare(
+  `DELETE FROM spans WHERE trace_id NOT IN (SELECT trace_id FROM traces)`,
+);
+
+function rowToSpan(row: SpanRow): SpanRecord {
+  const extra = row.extra
+    ? (JSON.parse(row.extra) as Record<string, unknown>)
+    : {};
+  return {
+    ...extra,
+    spanId: row.span_id,
+    spanType: row.span_type,
+    startedAt: row.started_at,
+    endedAt: row.ended_at,
+    error: row.error
+      ? (JSON.parse(row.error) as SpanRecord["error"])
+      : null,
+  };
+}
+
+function rowToTrace(row: TraceRow): TraceRecord {
+  return {
+    traceId: row.trace_id,
+    name: row.name,
+    sessionId: row.session_id,
+    startedAt: row.started_at,
+    endedAt: row.ended_at,
+    spans: (selectSpans.all(row.trace_id) as unknown as SpanRow[]).map(rowToSpan),
+  };
+}
+
+export class TraceStore {
+  startTrace(
+    traceId: string,
+    name: string,
+    sessionId: string | null,
+    startedAt: string,
+  ) {
+    insertTrace.run(traceId, name, sessionId, startedAt);
+    pruneTraces.run(MAX_TRACES);
+    pruneSpans.run();
   }
 
   endTrace(traceId: string, endedAt: string) {
-    const trace = this.traces.get(traceId);
-    if (trace) trace.endedAt = endedAt;
+    updateTraceEnd.run(endedAt, traceId);
   }
 
   addSpan(traceId: string, span: SpanRecord) {
-    this.traces.get(traceId)?.spans.push(span);
+    const { spanId, spanType, startedAt, endedAt, error, ...extra } = span;
+    insertSpan.run(
+      spanId,
+      traceId,
+      spanType,
+      startedAt ?? null,
+      endedAt ?? null,
+      error ? JSON.stringify(error) : null,
+      JSON.stringify(extra),
+    );
   }
 
   get(traceId: string): TraceRecord | undefined {
-    return this.traces.get(traceId);
+    const row = selectTrace.get(traceId) as TraceRow | undefined;
+    return row ? rowToTrace(row) : undefined;
   }
 
   list({
     sessionId,
     limit = 50,
   }: { sessionId?: string; limit?: number } = {}): TraceSummary[] {
-    const summaries: TraceSummary[] = [];
-    for (let i = this.insertionOrder.length - 1; i >= 0; i--) {
-      const trace = this.traces.get(this.insertionOrder[i]!);
-      if (!trace) continue;
-      if (sessionId && trace.sessionId !== sessionId) continue;
-      summaries.push(summarize(trace));
-      if (summaries.length >= limit) break;
-    }
-    return summaries;
-  }
-
-  private prune() {
-    while (this.insertionOrder.length > MAX_TRACES) {
-      const oldest = this.insertionOrder.shift();
-      if (oldest) this.traces.delete(oldest);
-    }
+    const rows = (
+      sessionId
+        ? selectTracesBySession.all(sessionId, limit)
+        : selectTracesAll.all(limit)
+    ) as unknown as TraceRow[];
+    return rows.map((row) => summarize(rowToTrace(row)));
   }
 }
 

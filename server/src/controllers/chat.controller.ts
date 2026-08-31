@@ -96,9 +96,21 @@ export async function chatController(req: Request, res: Response) {
     });
   }
 
+  // Session ownership: a sessionId is claimed by the first user who writes to
+  // it. Anyone else trying to continue that conversation is refused — without
+  // this, any authenticated user could resume any session and read its history
+  // back through the model. A brand-new sessionId (no owner yet) is fine.
+  const sessionOwner = conversationService.getSessionOwner(sessionId);
+  if (sessionOwner !== undefined && sessionOwner !== user.userId) {
+    return res.status(403).json({
+      success: false,
+      message: "This conversation belongs to another user.",
+    });
+  }
+
   try {
-    conversationService.addUserMessage(sessionId, message);
-    const history = conversationService.getHistory(sessionId);
+    conversationService.addUserMessage(sessionId, user.userId, message);
+    const history = conversationService.getRecentHistory(sessionId);
 
     if (format === "json") {
       // --- Structured mode: buffered, single JSON response ---
@@ -123,6 +135,7 @@ export async function chatController(req: Request, res: Response) {
 
         conversationService.addAssistantMessage(
           sessionId,
+          user.userId,
           JSON.stringify(outcome.output),
         );
         return res.json({ success: true, response: outcome.output });
@@ -130,7 +143,7 @@ export async function chatController(req: Request, res: Response) {
         const decline = describeGuardrailFailure(agentError);
         if (decline) {
           const response = { summary: decline, employees: [], metrics: [] };
-          conversationService.addAssistantMessage(sessionId, decline);
+          conversationService.addAssistantMessage(sessionId, user.userId, decline);
           return res.json({ success: true, response });
         }
 
@@ -150,7 +163,7 @@ export async function chatController(req: Request, res: Response) {
     } catch (agentError) {
       const decline = describeGuardrailFailure(agentError);
       if (decline) {
-        conversationService.addAssistantMessage(sessionId, decline);
+        conversationService.addAssistantMessage(sessionId, user.userId, decline);
         return res.json({ success: true, response: decline });
       }
 
@@ -167,7 +180,11 @@ export async function chatController(req: Request, res: Response) {
     }
 
     const assistantResponse = outcome.output;
-    conversationService.addAssistantMessage(sessionId, assistantResponse);
+    conversationService.addAssistantMessage(
+      sessionId,
+      user.userId,
+      assistantResponse,
+    );
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
