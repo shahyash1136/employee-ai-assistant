@@ -36,7 +36,7 @@ export type RunOutcome<T> =
       approvalId: string;
       pendingTool: {
         name: string;
-        arguments: string | undefined;
+        arguments: string | null;
         agentName: string;
       };
     };
@@ -61,7 +61,9 @@ function recordApproval(
     approvalId,
     sessionId,
     toolName: interruption.name ?? "unknown_tool",
-    toolArguments: interruption.arguments,
+    // The SDK types `arguments` as optionally undefined; SQLite bind params
+    // reject undefined, so normalize the absent case to null here.
+    toolArguments: interruption.arguments ?? null,
     agentName: interruption.agent.name,
     serializedState: result.state.toString(),
     format,

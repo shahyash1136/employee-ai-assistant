@@ -18,6 +18,12 @@ export const listApprovals = async (req: Request, res: Response) => {
 };
 
 export const decideApproval = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
   const approvalId = req.params.approvalId as string;
   const { approve, message } = req.body;
 
@@ -33,6 +39,16 @@ export const decideApproval = async (req: Request, res: Response) => {
       .status(404)
       .json({ success: false, message: "Approval not found" });
   }
+
+  // Deciding an approval resumes a paused run for its session — same
+  // ownership rule as continuing the chat: only the session's owner may do it.
+  const ownerId = conversationService.getSessionOwner(existing.sessionId);
+  if (ownerId !== req.user.userId) {
+    return res
+      .status(403)
+      .json({ success: false, message: "This approval belongs to another user." });
+  }
+
   if (existing.status !== "pending") {
     return res.status(409).json({
       success: false,
@@ -63,7 +79,13 @@ export const decideApproval = async (req: Request, res: Response) => {
     typeof outcome.output === "string"
       ? outcome.output
       : JSON.stringify(outcome.output);
-  conversationService.addAssistantMessage(existing.sessionId, responseText);
+  // The resumed turn's reply belongs to the same session; attribute it to
+  // its owner, already resolved and verified above.
+  conversationService.addAssistantMessage(
+    existing.sessionId,
+    ownerId,
+    responseText,
+  );
 
   res.json({ success: true, response: outcome.output });
 };
