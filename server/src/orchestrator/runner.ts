@@ -149,6 +149,20 @@ export async function resumeEmployeeAgent(
     return { status: "not_found" };
   }
 
+  // Claim the approval atomically BEFORE any resume work. resolve() is a
+  // conditional UPDATE ... WHERE status = 'pending'; if a concurrent decide
+  // request already flipped it (the two can interleave across the awaited
+  // RunState.fromString below), this returns false and we must not run() the
+  // paused state a second time.
+  const claimed = approvalStore.resolve(
+    approvalId,
+    decision.approve ? "approved" : "rejected",
+    new Date().toISOString(),
+  );
+  if (!claimed) {
+    return { status: "not_found" };
+  }
+
   // The type parameter differs per agent variant (plain string output vs a
   // Zod-typed structured output) so this cast is the one place we bridge that
   // — safe here because `format` is exactly what recordApproval() stored based
@@ -179,12 +193,6 @@ export async function resumeEmployeeAgent(
       );
     }
   }
-
-  approvalStore.resolve(
-    approvalId,
-    decision.approve ? "approved" : "rejected",
-    new Date().toISOString(),
-  );
 
   const traceName =
     record.format === "json"

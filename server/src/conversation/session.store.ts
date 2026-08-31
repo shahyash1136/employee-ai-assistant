@@ -69,8 +69,8 @@ export class SessionStore {
     return rows.reverse().map(toMessage);
   }
 
-  // Who started this session. Not enforced anywhere yet — follow-up
-  // authorization concern, tracked separately from persistence.
+  // Who started this session. chat.controller uses this to refuse turns from
+  // any user other than the one who first wrote to the sessionId.
   getSessionOwner(sessionId: string): string | undefined {
     const row = selectOwner.get(sessionId) as { user_id: string } | undefined;
     return row?.user_id;

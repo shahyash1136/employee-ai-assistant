@@ -18,12 +18,6 @@ export const listApprovals = async (req: Request, res: Response) => {
 };
 
 export const decideApproval = async (req: Request, res: Response) => {
-  if (!req.user) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authenticated" });
-  }
-
   const approvalId = req.params.approvalId as string;
   const { approve, message } = req.body;
 
@@ -40,15 +34,10 @@ export const decideApproval = async (req: Request, res: Response) => {
       .json({ success: false, message: "Approval not found" });
   }
 
-  // Deciding an approval resumes a paused run for its session — same
-  // ownership rule as continuing the chat: only the session's owner may do it.
-  const ownerId = conversationService.getSessionOwner(existing.sessionId);
-  if (ownerId !== req.user.userId) {
-    return res
-      .status(403)
-      .json({ success: false, message: "This approval belongs to another user." });
-  }
-
+  // No session-ownership check here on purpose: the whole point of HITL is
+  // that a *different* person (a manager/admin) signs off on an employee's
+  // paused action. Access is gated by requireRole(["manager","admin"]) on the
+  // route — that's the correct and sufficient rule for deciding approvals.
   if (existing.status !== "pending") {
     return res.status(409).json({
       success: false,
@@ -80,12 +69,15 @@ export const decideApproval = async (req: Request, res: Response) => {
       ? outcome.output
       : JSON.stringify(outcome.output);
   // The resumed turn's reply belongs to the same session; attribute it to
-  // its owner, already resolved and verified above.
-  conversationService.addAssistantMessage(
-    existing.sessionId,
-    ownerId,
-    responseText,
-  );
+  // whoever owns that session (the deciding manager is not that person).
+  const ownerId = conversationService.getSessionOwner(existing.sessionId);
+  if (ownerId) {
+    conversationService.addAssistantMessage(
+      existing.sessionId,
+      ownerId,
+      responseText,
+    );
+  }
 
   res.json({ success: true, response: outcome.output });
 };
