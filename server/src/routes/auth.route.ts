@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { login } from "../controllers/auth.controller.js";
+import { loginLimiter } from "../middleware/rateLimiters.js";
 
 const router = Router();
 
@@ -8,6 +9,7 @@ const router = Router();
  * /auth/login:
  *   post:
  *     summary: Log in and receive a JWT
+ *     description: Limited to 5 attempts per 15 minutes per IP address.
  *     tags: [Auth]
  *     security: []
  *     requestBody:
@@ -44,7 +46,9 @@ const router = Router();
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiError' }
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
  */
-router.post("/login", login);
+router.post("/login", loginLimiter, login);
 
 export default router;

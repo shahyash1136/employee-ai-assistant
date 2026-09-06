@@ -251,6 +251,14 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        TooManyRequests: {
+          description: "Rate limit exceeded",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ApiError" },
+            },
+          },
+        },
       },
     },
   },
