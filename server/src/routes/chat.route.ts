@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { chatController } from "../controllers/chat.controller.js";
+import { chatLimiter } from "../middleware/rateLimiters.js";
 
 const router = Router();
 
@@ -14,7 +15,7 @@ const router = Router();
  *       response is replayed to the client as a simulated SSE token stream
  *       (`text/event-stream`, lines like `data: {"token":"..."}`, ending with
  *       `data: [DONE]`). With `format: "json"`, one buffered structured JSON
- *       response is returned instead.
+ *       response is returned instead. Limited to 10 requests per minute per user.
  *     tags: [Chat]
  *     requestBody:
  *       required: true
@@ -38,6 +39,8 @@ const router = Router();
  *                 response: { $ref: '#/components/schemas/StructuredResponse' }
  *       400:
  *         $ref: '#/components/responses/BadRequest'
+ *       429:
+ *         $ref: '#/components/responses/TooManyRequests'
  *       500:
  *         $ref: '#/components/responses/ServerError'
  *       502:
@@ -46,6 +49,6 @@ const router = Router();
  *           application/json:
  *             schema: { $ref: '#/components/schemas/ApiError' }
  */
-router.post("/", chatController);
+router.post("/", chatLimiter, chatController);
 
 export default router;
