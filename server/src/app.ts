@@ -2,6 +2,7 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./openapi/swagger.js";
 import { authenticate } from "./middleware/authenticate.js";
+import { httpLogger } from "./middleware/httpLogger.js";
 import authRoute from "./routes/auth.route.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
@@ -12,9 +13,14 @@ import salariesRoutes from "./routes/salaries.routes.js";
 import chatRoute from "./routes/chat.route.js";
 import tracesRoute from "./routes/traces.route.js";
 import approvalsRoute from "./routes/approvals.route.js";
+import logsRoute from "./routes/logs.route.js";
+import metricsRoute from "./routes/metrics.route.js";
 const app = express();
 
 app.use(express.json());
+// First middleware, before auth — logs literally every request, including
+// unauthenticated ones and failed logins.
+app.use(httpLogger);
 
 app.get("/", (req, res) => {
   res.json({
@@ -42,5 +48,7 @@ app.use("/salaries", salariesRoutes);
 app.use("/chat", chatRoute);
 app.use("/traces", tracesRoute);
 app.use("/approvals", approvalsRoute);
+app.use("/logs", logsRoute);
+app.use("/metrics", metricsRoute);
 
 export default app;

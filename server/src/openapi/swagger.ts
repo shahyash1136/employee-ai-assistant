@@ -208,6 +208,41 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        RequestLog: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            method: { type: "string", example: "POST" },
+            path: { type: "string", example: "/chat" },
+            status: { type: "integer", example: 200 },
+            durationMs: { type: "number", example: 342.15 },
+            userId: { type: "string", nullable: true },
+            timestamp: { type: "string", format: "date-time" },
+          },
+        },
+        Metrics: {
+          type: "object",
+          properties: {
+            totalRequests: { type: "integer" },
+            errorRate: { type: "number", example: 0.02 },
+            averageDurationMs: { type: "number" },
+            requestsByStatus: {
+              type: "object",
+              additionalProperties: { type: "integer" },
+            },
+            requestsByPath: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  path: { type: "string" },
+                  count: { type: "integer" },
+                  averageDurationMs: { type: "number" },
+                },
+              },
+            },
+          },
+        },
         ApprovalSummary: {
           type: "object",
           properties: {

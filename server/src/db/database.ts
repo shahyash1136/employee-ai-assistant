@@ -68,4 +68,15 @@ db.exec(`
     resolved_at      TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_approvals_session ON approvals (session_id);
+
+  CREATE TABLE IF NOT EXISTS request_logs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    method      TEXT NOT NULL,
+    path        TEXT NOT NULL,
+    status      INTEGER NOT NULL,
+    duration_ms REAL NOT NULL,
+    user_id     TEXT,
+    timestamp   TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_request_logs_user ON request_logs (user_id, id);
 `);
