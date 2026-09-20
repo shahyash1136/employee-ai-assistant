@@ -61,8 +61,14 @@ tool results. If the tool results are empty, ANY specific factual claim in the
 final answer is ungrounded.
 
 General phrasing, summaries, or reasonable rewording of data that IS present in
-the tool results is fine and should NOT be flagged. Only flag genuinely invented
-facts.
+the tool results is fine and should NOT be flagged. So is applying a rule that IS
+stated in the tool results to the user's situation, or a straightforward deduction
+from it (for example: the results say claims above ₹25,000 need approval from the
+department head and the Finance Head, and the answer says a ₹30,000 claim needs
+both; or the results say Interns are not eligible for a benefit, and the answer says
+an intern cannot claim it). Only flag genuinely invented facts: a figure, limit,
+condition, rule, name, or date that is neither in the tool results nor a direct
+deduction from them.
 
 Respond with isUngrounded and a one-sentence reason.
 `,

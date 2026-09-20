@@ -15,6 +15,18 @@ export function isValidDepartmentId(value: unknown): string | null {
   return null;
 }
 
+const MAX_SEARCH_QUERY_CHARS = 500;
+
+export function isValidSearchQuery(value: unknown): string | null {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return "The search query must be a non-empty string.";
+  }
+  if (value.length > MAX_SEARCH_QUERY_CHARS) {
+    return `The search query is too long (max ${MAX_SEARCH_QUERY_CHARS} characters). Use a short, focused query.`;
+  }
+  return null;
+}
+
 // Not wired to any shipped tool yet — none of your current tools accept a raw
 // date parameter (get_attendance_by_employee, for example, takes only an
 // employeeId, not a month/year). Included so a future date-taking tool can

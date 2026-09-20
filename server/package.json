@@ -4,7 +4,8 @@
   "main": "app.ts",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts"
+    "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
+    "ingest:policies": "tsx src/knowledge/ingest.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.3",
     "openai": "^6.48.0",
+    "pg": "^8.23.0",
     "pino": "^10.3.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
@@ -29,6 +31,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.1.1",
+    "@types/pg": "^8.23.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "nodemon": "^3.1.14",
