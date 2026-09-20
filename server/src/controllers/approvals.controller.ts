@@ -64,10 +64,17 @@ export const decideApproval = async (req: Request, res: Response) => {
     });
   }
 
-  const responseText =
+  let responseText =
     typeof outcome.output === "string"
       ? outcome.output
       : JSON.stringify(outcome.output);
+  // Don't leave the requester with a silent, blank reply if the resumed run
+  // came back empty.
+  if (responseText.trim().length === 0) {
+    responseText = approve
+      ? "Your request was approved, but I couldn't produce a response. Please ask again."
+      : "Your request was rejected.";
+  }
   // The resumed turn's reply belongs to the same session; attribute it to
   // whoever owns that session (the deciding manager is not that person).
   const ownerId = conversationService.getSessionOwner(existing.sessionId);

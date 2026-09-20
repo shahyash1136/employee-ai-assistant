@@ -105,7 +105,12 @@ const options: swaggerJsdoc.Options = {
           type: "object",
           required: ["sessionId", "message"],
           properties: {
-            sessionId: { type: "string", example: "session-123" },
+            sessionId: {
+              type: "string",
+              format: "uuid",
+              description: "Client-generated UUID; the first user to use one owns it.",
+              example: "9145dde1-e9a6-447c-9996-b63897e9fe57",
+            },
             message: {
               type: "string",
               example: "How many departments are there?",

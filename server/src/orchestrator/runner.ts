@@ -20,14 +20,30 @@ import {
 } from "../approvals/approvalStore.js";
 import type { AuthTokenPayload } from "../types/user.js";
 
+// Blank messages are skipped: an empty assistant reply saved earlier would
+// otherwise be replayed to the model on every later turn.
 function toInput(history: ConversationMessage[]) {
-  return history.map((item) =>
-    item.role === "assistant" ? assistant(item.content) : user(item.content),
-  );
+  return history
+    .filter((item) => item.content.trim().length > 0)
+    .map((item) =>
+      item.role === "assistant" ? assistant(item.content) : user(item.content),
+    );
 }
 
 const OUTPUT_GUARDRAILS = [sensitiveInfoGuardrail, hallucinationGuardrail];
-const runner = new Runner({ outputGuardrails: OUTPUT_GUARDRAILS });
+// The default model (gpt-5.4-mini) runs with reasoning effectively off. In that
+// mode, right after an Orchestrator -> specialist handoff it would often end
+// the specialist's turn with a completed but EMPTY message (4 output tokens, 0
+// reasoning tokens, no tool call), most visibly on "what is my salary" after
+// a greeting. Measured over repeated runs: empty replies on most attempts
+// without this setting, none in 36+ runs with "low" (and no real latency cost).
+const runner = new Runner({
+  outputGuardrails: OUTPUT_GUARDRAILS,
+  modelSettings: { reasoning: { effort: "low" } },
+});
+
+// If a run still completes with no text, try once more before giving up.
+const EMPTY_OUTPUT_RETRIES = 1;
 
 export type RunOutcome<T> =
   | { status: "completed"; output: T }
@@ -94,13 +110,21 @@ export async function runEmployeeAgentStream(
     "Employee Agent Stream",
     async (trace) => {
       try {
-        const result = await runner.run(orchestratorAgent, input, {
-          context: user,
-        });
-        if (result.interruptions.length > 0) {
-          return recordApproval(result, sessionId, "text");
+        for (let attempt = 0; ; attempt++) {
+          const result = await runner.run(orchestratorAgent, input, {
+            context: user,
+          });
+          if (result.interruptions.length > 0) {
+            return recordApproval(result, sessionId, "text");
+          }
+          const output = result.finalOutput ?? "";
+          if (output.trim().length > 0 || attempt >= EMPTY_OUTPUT_RETRIES) {
+            return { status: "completed", output };
+          }
+          console.warn(
+            `Empty assistant output (session ${sessionId}, attempt ${attempt + 1}); retrying`,
+          );
         }
-        return { status: "completed", output: result.finalOutput ?? "" };
       } finally {
         await trace.end();
       }

@@ -1,77 +1,332 @@
-# React + TypeScript + Vite
+# Employee AI Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An internal chat assistant that answers questions about employees, attendance,
+departments, salaries, performance, projects and HR policies (leave, work from
+home, expenses, code of conduct). A multi-agent backend (Express + OpenAI
+Agents SDK) does the work; this folder is the React frontend.
 
-Currently, two official plugins are available:
+Company-wide salary data (averages, rankings, ranges, bulk exports) is
+restricted: **employees are refused outright**, and **managers and admins have
+the request paused for human approval**. The requester sees "Waiting for
+approval" in chat, and a manager or admin approves or rejects it from a
+dashboard. Approved requests resume automatically and the reply shows up in the
+requester's chat.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Sign in** with a username and password (JWT, 1 hour expiry).
+- **Chat** with streamed replies and markdown/table rendering.
+- **Chat history** in a left sidebar, like ChatGPT and Claude: your past
+  conversations grouped by day, click one to reopen it, "New chat" to start
+  fresh, and delete from each row's menu. Every conversation has its own URL
+  (`/chat/<id>`), so refresh and bookmarks work. On mobile the sidebar is a
+  slide-out drawer.
+- **Theme**: Light, Dark or System from the toggle in the header (also on the
+  login page). Remembered per browser.
+- **Approval dashboard** for managers and admins: pending tool calls with
+  arguments and request time, Approve / Reject (with optional reason).
+- **Role-aware UI**: the Approvals link and route exist only for `manager` and
+  `admin`. This is UX only; the server enforces roles on every request.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Who can do what
 
-Note: This will impact Vite dev & build performances.
+| Role       | Chat | Approvals page | Notes                                                        |
+| ---------- | ---- | -------------- | ------------------------------------------------------------ |
+| `employee` | yes  | no             | Own salary, attendance and performance only; company-wide (or anyone else's) salary, attendance and performance data is refused |
+| `manager`  | yes  | yes            | Can approve/reject any paused request                        |
+| `admin`    | yes  | yes            | Same as manager for approvals                                |
 
-## Expanding the ESLint configuration
+## How it works
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Architecture
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```mermaid
+flowchart TB
+  subgraph Browser["Browser: React SPA (client/)"]
+    Pages["pages: Login, Chat, Approvals"]
+    Hooks["hooks: useAuth, useChat, useApprovals"]
+    Api["lib/api.ts (only fetch caller)"]
+    Pages --> Hooks --> Api
+  end
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+  subgraph Server["Express API (server/)"]
+    Auth["POST /auth/login (public)"]
+    Guard["authenticate (JWT) on everything below"]
+    Chat["/chat"]
+    Appr["/approvals (manager, admin only)"]
+    Auth ~~~ Guard
+    Guard --> Chat
+    Guard --> Appr
+  end
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+  subgraph Agents["Agents (OpenAI Agents SDK)"]
+    Orch["Orchestrator agent"]
+    Domain["Domain agents: employee, attendance, department, salary, performance, project, policy"]
+    Orch --> Domain
+  end
 
+  subgraph Data["Data stores"]
+    CSV[("CSV files in data/")]
+    SQLite[("SQLite app.db: sessions, messages, approvals, traces")]
+    PG[("Postgres + pgvector: HR policy chunks")]
+  end
+
+  Api -- "HTTP + Bearer JWT" --> Auth
+  Api -- "HTTP + Bearer JWT" --> Guard
+  Chat --> Orch
+  Appr -- "resume paused run" --> Orch
+  Domain --> CSV
+  Domain -- "policy search" --> PG
+  Chat --> SQLite
+  Appr --> SQLite
+  Domain -. "calls" .-> OpenAI["OpenAI API"]
+  Orch -. "calls" .-> OpenAI
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Chat history
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The server already stores every conversation (SQLite `sessions` and `messages`
+tables, each session owned by one user). The sidebar reads it through two
+owner-only endpoints. Nobody can list, read or delete another user's chats.
+Session ids are generated by the client (`crypto.randomUUID()`), and the server
+rejects anything that isn't a UUID with a 400, so an id can't be guessed and
+pre-claimed.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Endpoint | Purpose |
+| -------- | ------- |
+| `GET /chat/sessions` | Your conversations, newest first; the title is the first message |
+| `GET /chat/:sessionId/messages` | The transcript of one conversation |
+| `DELETE /chat/:sessionId` | Delete a conversation (409 if a request in it is still waiting for approval) |
+
+```mermaid
+flowchart TD
+  Open["Open /chat"] --> Empty["Empty new conversation"]
+  Empty -- "send first message" --> Post["POST /chat with a client-generated sessionId"]
+  Post -- "server accepts it" --> Url["URL becomes /chat/:sessionId, sidebar refreshes"]
+  Side["Click a conversation in the sidebar"] --> Load["Navigate to /chat/:sessionId"]
+  Url --> Load2["Refresh or bookmark: same URL"]
+  Load --> Fetch["GET /chat/:sessionId/messages and /approvals"]
+  Load2 --> Fetch
+  Fetch --> Show["Transcript and any pending approval notice"]
+  Show -- "send a message" --> Post
+```
+
+### What the client does with a chat response
+
+`POST /chat` doesn't always return a stream, so the client branches on the
+response type instead of assuming one.
+
+```mermaid
+flowchart TD
+  Send["POST /chat with sessionId and message"] --> Status{"HTTP status"}
+  Status -- "not 2xx" --> Err["Show error message inline (400, 403, 429, 502, 500)"]
+  Status -- "200" --> Type{"Content-Type"}
+  Type -- "text/event-stream" --> Stream["Read SSE: append each token until [DONE]"]
+  Type -- "application/json" --> Json{"requiresApproval?"}
+  Json -- "yes" --> Wait["Show 'Waiting for approval' notice and start polling"]
+  Json -- "no" --> Reply["Show response text, e.g. a guardrail decline"]
+```
+
+### Approval flow
+
+A manager's or admin's company-wide salary request is paused, a manager or
+admin decides it, and the requester's chat picks up the result on its own.
+(Employees never get this far: those tools refuse them before any approval is
+created.)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Emp as Requester (Chat page)
+  participant API as Express API
+  participant Agent as Agents
+  actor Mgr as Manager or admin (Approvals page)
+
+  Emp->>API: POST /chat {sessionId, message}
+  API->>Agent: run orchestrator
+  Agent-->>API: sensitive tool paused (needsApproval)
+  API-->>Emp: 200 JSON {requiresApproval, approvalId, pendingTool}
+  Note over Emp: Shows "Waiting for approval"
+
+  loop every 4 seconds while pending
+    Emp->>API: GET /chat/:sessionId/approvals
+    API-->>Emp: status: pending
+  end
+
+  Mgr->>API: GET /approvals?status=pending
+  API-->>Mgr: pending list
+  Mgr->>API: POST /approvals/:id/decision {approve, message?}
+  API->>Agent: resume the paused run
+  Agent-->>API: final answer (saved to session history)
+  API-->>Mgr: 200 {response}
+  Note over Mgr: Row disappears from the table
+
+  Emp->>API: GET /chat/:sessionId/approvals
+  API-->>Emp: status: approved or rejected
+  Emp->>API: GET /chat/:sessionId/messages
+  API-->>Emp: transcript including the resumed reply
+  Note over Emp: Notice clears and the reply appears
+```
+
+If the resumed run hits a second sensitive tool, the decision response is
+another `requiresApproval` payload and a new pending row appears.
+
+### Route guard
+
+```mermaid
+flowchart TD
+  Nav["Navigate to a route"] --> Login{"Route is /login?"}
+  Login -- "yes" --> Has{"Already signed in?"}
+  Has -- "yes" --> ToChat["Redirect to /chat"]
+  Has -- "no" --> ShowLogin["Show login form"]
+  Login -- "no" --> Tok{"Valid, unexpired token?"}
+  Tok -- "no" --> ToLogin["Redirect to /login"]
+  Tok -- "yes" --> Role{"Route needs manager or admin?"}
+  Role -- "no" --> Page["Render page"]
+  Role -- "yes" --> Allowed{"Role is manager or admin?"}
+  Allowed -- "yes" --> Page
+  Allowed -- "no" --> ToChat2["Redirect to /chat"]
+  Page --> Api["API calls re-check the token and role on the server"]
+```
+
+The client-side checks only shape the UI. Every API call is verified again by
+the server, and a 401 anywhere signs the user out.
+
+## How to access it
+
+Once both apps are running locally (see below):
+
+| What                     | URL                             |
+| ------------------------ | ------------------------------- |
+| Web app                  | http://localhost:5173           |
+| API                      | http://localhost:3000           |
+| API docs (Swagger UI)    | http://localhost:3000/api-docs  |
+
+Open the web app and sign in. Seed users are in `data/users.csv` at the repo
+root; test accounts and what to try with each are in [TESTING.md](TESTING.md).
+
+## Run it locally
+
+### Prerequisites
+
+- **Node.js 22.13 or newer.** The server uses the built-in `node:sqlite`
+  module, and Vite 8 needs a recent Node too. Developed on Node 26.
+- An **OpenAI API key** (the agents call the OpenAI API).
+- **PostgreSQL with the pgvector extension**, used only for the HR-policy
+  search. Chat about employees, salaries, etc. does not depend on it, but
+  policy questions do.
+
+### 1. Server (`../server`)
+
+Create `server/.env`:
+
+```bash
+JWT_SECRET=<any long random string>      # required; server won't start without it
+OPENAI_API_KEY=<your key>
+DATABASE_URL=postgresql://<user>@localhost:5432/employee_ai_assistant
+# optional
+PORT=3000                                # default 3000
+CLIENT_ORIGIN=http://localhost:5173      # CORS allowlist, comma-separated; default shown
+LOG_LEVEL=info
+```
+
+Then:
+
+```bash
+cd server
+npm install
+npm run ingest:policies    # one-time: chunk + embed data/policies/*.md into Postgres
+npm run dev                # http://localhost:3000
+```
+
+`npm run ingest:policies -- --dry-run` previews chunking without calling
+OpenAI or the database. The SQLite database for conversations, traces and
+approvals is created automatically at `data/app.db`.
+
+### 2. Client (this folder)
+
+```bash
+cd client
+npm install
+npm run dev                # http://localhost:5173
+```
+
+Optional: `cp .env.example .env` and set `VITE_API_URL` if the API isn't at
+`http://localhost:3000`. If the client runs on a different origin than
+`http://localhost:5173`, add that origin to `CLIENT_ORIGIN` on the server.
+
+### Other client commands
+
+```bash
+npm run build      # typecheck + production build into dist/
+npm run preview    # serve the production build locally
+npm run lint       # eslint
+```
+
+## How to test it
+
+There is no automated test suite for the client yet. Testing is manual, with a
+step-by-step guide in **[TESTING.md](TESTING.md)**: accounts, questions to ask
+as each role, the approval flow, and curl checks.
+
+A 2-minute smoke test:
+
+1. Sign in as `manager1` / `manager123`.
+2. Ask "In one sentence, what is the annual leave policy?" and watch it stream.
+3. Ask "What is the average salary across all employees?" and see **Waiting
+   for approval**.
+4. Open **Approvals**, click **Approve**, and the row disappears.
+5. Go back to **Chat** and the answer is there.
+6. Log out from the avatar menu.
+
+Before opening a PR, run `npm run lint && npm run build`.
+
+## Troubleshooting
+
+| Symptom | Likely cause and fix |
+| ------- | -------------------- |
+| "Cannot reach the server. Is it running?" | Server isn't up, or `VITE_API_URL` points at the wrong place. |
+| Browser console shows a CORS error | The client's origin isn't in the server's `CLIENT_ORIGIN`. Add it and restart the server. |
+| "Too many login attempts" | Login is limited to 5 attempts per 15 minutes per IP, and wrong passwords count. Wait, or restart the server (the limiter is in memory). |
+| "Too many requests" in chat | Chat is limited to 10 messages per minute per user. |
+| Signed out unexpectedly | Tokens last 1 hour and there is no refresh; sign in again. |
+| Server exits with `JWT_SECRET environment variable is required` | Add `JWT_SECRET` to `server/.env`. |
+| Policy questions fail or say they can't verify | Postgres isn't reachable, `DATABASE_URL` is wrong, or `npm run ingest:policies` hasn't been run. |
+| A 404 for `/chat/<id>/messages` in the console on a new chat | Expected: a brand-new session has no history yet. |
+
+## Tech stack
+
+React 19 · TypeScript · Vite · Tailwind CSS v4 · shadcn/ui (Base UI) ·
+React Router · react-markdown.
+
+## Project layout
 
 ```
+client/src/
+  pages/        login, chat, approvals
+  components/   feature components; ui/ is shadcn-generated
+  hooks/        useAuth, useChat, useChatSessions, useApprovals, useTheme
+  lib/          api.ts (the only place that calls fetch), token storage,
+                JWT decoding, role helpers, formatting
+  types/        API and domain types mirrored from the server
+```
+
+Design notes:
+
+- **Token storage:** the JWT is kept in `localStorage`. The reasoning and its
+  trade-offs are documented at the top of `src/lib/auth-storage.ts`.
+- **Chat streaming:** the server runs the whole agent first and then replays
+  the text as server-sent events, so there is a wait before the first token;
+  the skeleton indicator covers it.
+- **Conversations live in the URL:** `/chat` is a new conversation and
+  `/chat/:sessionId` a saved one, so there is no separate "current session"
+  state to keep in sync. A new conversation's id is generated up front and the
+  URL switches to it once the server accepts the first message.
+- **Theme:** `ThemeProvider` toggles the `dark` class on `<html>`; an inline
+  script in `index.html` applies the saved choice before first paint, so
+  there's no flash of the wrong theme.
+- **Approval updates in chat:** employees can't call `/approvals`, so the chat
+  polls `GET /chat/:sessionId/approvals` every 4 seconds while something is
+  pending, then reloads the transcript when a decision lands.
+- **Role checks:** `src/lib/roles.ts` mirrors the server's
+  `requireRole(["manager", "admin"])`. It only decides what to show.

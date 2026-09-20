@@ -1,4 +1,4 @@
-import { sessionStore } from "./session.store.js";
+import { sessionStore, type SessionSummary } from "./session.store.js";
 import type { ConversationMessage } from "./types.js";
 
 // Cap on how many past messages get replayed into the model per turn.
@@ -17,6 +17,10 @@ export class ConversationService {
 
   getSessionOwner(sessionId: string): string | undefined {
     return sessionStore.getSessionOwner(sessionId);
+  }
+
+  listSessions(userId: string, limit = 100): SessionSummary[] {
+    return sessionStore.listForUser(userId, limit);
   }
 
   addUserMessage(sessionId: string, userId: string, content: string) {
