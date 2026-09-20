@@ -32,6 +32,23 @@ const selectOwner = db.prepare(
   `SELECT user_id FROM sessions WHERE session_id = ?`,
 );
 
+// One row per session the user owns, newest activity first. The first user
+// message doubles as the conversation title. Sessions are only created by a
+// message insert, so every row has at least one message.
+const selectForUser = db.prepare(
+  `SELECT s.session_id AS session_id,
+          s.created_at AS created_at,
+          (SELECT content FROM messages m
+             WHERE m.session_id = s.session_id AND m.role = 'user'
+             ORDER BY m.id ASC LIMIT 1) AS first_message,
+          (SELECT MAX(timestamp) FROM messages m
+             WHERE m.session_id = s.session_id) AS updated_at
+   FROM sessions s
+   WHERE s.user_id = ?
+   ORDER BY updated_at DESC
+   LIMIT ?`,
+);
+
 const deleteMessages = db.prepare(`DELETE FROM messages WHERE session_id = ?`);
 const deleteSession = db.prepare(`DELETE FROM sessions WHERE session_id = ?`);
 
@@ -41,6 +58,30 @@ function toMessage(row: MessageRow): ConversationMessage {
     content: row.content,
     timestamp: new Date(row.timestamp),
   };
+}
+
+interface SessionRow {
+  session_id: string;
+  created_at: string;
+  first_message: string | null;
+  updated_at: string | null;
+}
+
+export interface SessionSummary {
+  sessionId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const TITLE_MAX_LENGTH = 60;
+
+function toTitle(firstMessage: string | null): string {
+  const collapsed = (firstMessage ?? "").replace(/\s+/g, " ").trim();
+  if (!collapsed) return "New conversation";
+  return collapsed.length > TITLE_MAX_LENGTH
+    ? `${collapsed.slice(0, TITLE_MAX_LENGTH - 1)}…`
+    : collapsed;
 }
 
 export class SessionStore {
@@ -74,6 +115,16 @@ export class SessionStore {
   getSessionOwner(sessionId: string): string | undefined {
     const row = selectOwner.get(sessionId) as { user_id: string } | undefined;
     return row?.user_id;
+  }
+
+  listForUser(userId: string, limit: number): SessionSummary[] {
+    const rows = selectForUser.all(userId, limit) as unknown as SessionRow[];
+    return rows.map((row) => ({
+      sessionId: row.session_id,
+      title: toTitle(row.first_message),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at ?? row.created_at,
+    }));
   }
 
   clear(sessionId: string) {

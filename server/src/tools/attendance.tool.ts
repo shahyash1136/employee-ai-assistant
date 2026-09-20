@@ -3,15 +3,27 @@ import { z } from "zod";
 import { attendanceService } from "../services/attendance.service.js";
 import { safeToolExecute } from "../utils/safeToolExecute.js";
 import { employeeIdGuardrail } from "../guardrails/toolMisuse.guardrail.js";
+import type { RunContext } from "@openai/agents";
+import type { AuthTokenPayload } from "../types/user.js";
+import {
+  COMPANY_WIDE_ATTENDANCE_DENIED,
+  OWN_ATTENDANCE_ONLY,
+  denyEmployees,
+  isEmployee,
+} from "./roleAccess.js";
 
 export const getAttendanceTool = tool({
   name: "get_attendance",
   description: "Returns attendance of all the employees",
   parameters: z.object({}),
-  execute: safeToolExecute("get_attendance", async () => {
-    const attendance = await attendanceService.getAttendance();
-    return JSON.stringify(attendance);
-  }),
+  // Everyone's attendance and leave records: managers/admins only.
+  execute: safeToolExecute(
+    "get_attendance",
+    denyEmployees(async () => {
+      const attendance = await attendanceService.getAttendance();
+      return JSON.stringify(attendance);
+    }, COMPANY_WIDE_ATTENDANCE_DENIED),
+  ),
 });
 
 export const getAttendanceByEmployeeTool = tool({
@@ -24,7 +36,14 @@ export const getAttendanceByEmployeeTool = tool({
   inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_attendance_by_employee",
-    async ({ employeeId }) => {
+    async (
+      { employeeId }: { employeeId: string },
+      context?: RunContext<AuthTokenPayload>,
+    ) => {
+      // 'employee' role can only look up their own record.
+      if (isEmployee(context) && context?.context?.employeeId !== employeeId) {
+        return OWN_ATTENDANCE_ONLY;
+      }
       const records =
         await attendanceService.getAttendanceByEmployee(employeeId);
       if (records.length === 0) {
@@ -47,7 +66,13 @@ export const getAttendancePercentageTool = tool({
   inputGuardrails: [employeeIdGuardrail],
   execute: safeToolExecute(
     "get_attendance_percentage",
-    async ({ employeeId }) => {
+    async (
+      { employeeId }: { employeeId: string },
+      context?: RunContext<AuthTokenPayload>,
+    ) => {
+      if (isEmployee(context) && context?.context?.employeeId !== employeeId) {
+        return OWN_ATTENDANCE_ONLY;
+      }
       const percentage =
         await attendanceService.getAttendancePercentage(employeeId);
       if (percentage === undefined || percentage === null) {

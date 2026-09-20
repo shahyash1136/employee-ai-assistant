@@ -4,6 +4,10 @@ import {
   getAttendanceByEmployee,
   getAttendancePercentage,
 } from "../controllers/attendance.controller.js";
+import {
+  requireRole,
+  requireOwnRecordOrRole,
+} from "../middleware/authorize.js";
 
 const router = Router();
 
@@ -28,7 +32,7 @@ const router = Router();
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/", getAttendances);
+router.get("/", requireRole(["manager", "admin"]), getAttendances);
 
 /**
  * @openapi
@@ -60,7 +64,11 @@ router.get("/", getAttendances);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/percentage/:employeeId", getAttendancePercentage); // GET /attendance/percentage/E001
+router.get(
+  "/percentage/:employeeId",
+  requireOwnRecordOrRole(["manager", "admin"]),
+  getAttendancePercentage,
+); // GET /attendance/percentage/E001
 
 /**
  * @openapi
@@ -90,6 +98,10 @@ router.get("/percentage/:employeeId", getAttendancePercentage); // GET /attendan
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.get("/employee/:employeeId", getAttendanceByEmployee); // GET /attendance/employee/E001
+router.get(
+  "/employee/:employeeId",
+  requireOwnRecordOrRole(["manager", "admin"]),
+  getAttendanceByEmployee,
+); // GET /attendance/employee/E001
 
 export default router;

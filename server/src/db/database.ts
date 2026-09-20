@@ -23,6 +23,8 @@ db.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
+
   CREATE TABLE IF NOT EXISTS messages (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id TEXT NOT NULL,

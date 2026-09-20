@@ -9,19 +9,21 @@ import {
 } from "../guardrails/toolMisuse.guardrail.js";
 import type { RunContext } from "@openai/agents";
 import type { AuthTokenPayload } from "../types/user.js";
+import { denyEmployees, needsApprovalUnlessEmployee } from "./roleAccess.js";
 
 export const getSalariesTool = tool({
   name: "get_salaries",
   description: "Returns all salaries from the salaries CSV file.",
   parameters: z.object({}),
-  needsApproval: true, // bulk compensation data — always requires sign-off
-  execute: safeToolExecute("get_salaries", async () => {
+  // Employees are denied outright; managers/admins still need sign-off.
+  needsApproval: needsApprovalUnlessEmployee, // bulk compensation data
+  execute: safeToolExecute("get_salaries", denyEmployees(async () => {
     const salaries = await salaryServices.getSalaries();
     if (salaries.length === 0) {
       return JSON.stringify({ error: "No salary records available" });
     }
     return JSON.stringify(salaries);
-  }),
+  })),
 });
 
 export const getSalaryByEmployeeTool = tool({
@@ -66,29 +68,29 @@ export const getHighestSalaryTool = tool({
   description:
     "Returns the salary details of the employee with the highest salary.",
   parameters: z.object({}),
-  needsApproval: true, // comparative across all employees
-  execute: safeToolExecute("get_highest_salary", async () => {
+  needsApproval: needsApprovalUnlessEmployee, // comparative across all employees
+  execute: safeToolExecute("get_highest_salary", denyEmployees(async () => {
     const highestSalary = await salaryServices.getHighestSalary();
     if (!highestSalary) {
       return JSON.stringify({ error: "No salary records available" });
     }
     return JSON.stringify(highestSalary);
-  }),
+  })),
 });
 
 export const getAverageSalaryTool = tool({
   name: "get_average_salary",
   description: "Returns the average salary across all employees.",
   parameters: z.object({}),
-  needsApproval: true, // aggregate across all employees
-  execute: safeToolExecute("get_average_salary", async () => {
+  needsApproval: needsApprovalUnlessEmployee, // aggregate across all employees
+  execute: safeToolExecute("get_average_salary", denyEmployees(async () => {
     const salaries = await salaryServices.getSalaries();
     if (salaries.length === 0) {
       return JSON.stringify({ error: "No salary records available" });
     }
     const averageSalary = await salaryServices.getAverageSalary();
     return JSON.stringify(averageSalary);
-  }),
+  })),
 });
 
 export const getEmployeesBySalaryRangeTool = tool({
@@ -99,10 +101,10 @@ export const getEmployeesBySalaryRangeTool = tool({
     minSalary: z.number().describe("The minimum salary in the range."),
     maxSalary: z.number().describe("The maximum salary in the range."),
   }),
-  needsApproval: true, // comparative across employees
+  needsApproval: needsApprovalUnlessEmployee, // comparative across employees
   execute: safeToolExecute(
     "get_employees_by_salary_range",
-    async (params: { minSalary: number; maxSalary: number }) => {
+    denyEmployees(async (params: { minSalary: number; maxSalary: number }) => {
       if (params.minSalary > params.maxSalary) {
         return JSON.stringify({
           error: "minSalary cannot be greater than maxSalary",
@@ -118,7 +120,7 @@ export const getEmployeesBySalaryRangeTool = tool({
         });
       }
       return JSON.stringify(employees);
-    },
+    }),
   ),
 });
 
@@ -132,11 +134,11 @@ export const getHighestSalaryByDepartmentTool = tool({
   parameters: z.object({
     departmentId: z.string().describe("The department ID, e.g. 'D001'"),
   }),
-  needsApproval: true, // comparative within a department
+  needsApproval: needsApprovalUnlessEmployee, // comparative within a department
   inputGuardrails: [departmentIdGuardrail],
   execute: safeToolExecute(
     "get_highest_salary_by_department",
-    async ({ departmentId }) => {
+    denyEmployees(async ({ departmentId }: { departmentId: string }) => {
       const employees =
         await employeeService.getEmployeesByDepartment(departmentId);
       if (employees.length === 0) {
@@ -161,7 +163,7 @@ export const getHighestSalaryByDepartmentTool = tool({
         (e) => e.employeeId === topEarner.employeeID,
       );
       return JSON.stringify({ employee, salary: topEarner });
-    },
+    }),
   ),
 });
 
@@ -172,11 +174,11 @@ export const exportSalaryReportTool = tool({
     "Use only when the user explicitly asks to export, download, or generate a report " +
     "of salary data — not for answering a normal question.",
   parameters: z.object({}),
-  needsApproval: true, // always — this is the clearest "sensitive action" in the system
-  execute: safeToolExecute("export_salary_report", async () => {
+  needsApproval: needsApprovalUnlessEmployee, // the clearest "sensitive action" in the system
+  execute: safeToolExecute("export_salary_report", denyEmployees(async () => {
     const report = await salaryServices.generateSalaryReport();
     return JSON.stringify(report);
-  }),
+  })),
 });
 
 export const salaryTools = [

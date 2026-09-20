@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./openapi/swagger.js";
 import { authenticate } from "./middleware/authenticate.js";
@@ -16,6 +17,15 @@ import approvalsRoute from "./routes/approvals.route.js";
 import logsRoute from "./routes/logs.route.js";
 import metricsRoute from "./routes/metrics.route.js";
 const app = express();
+
+// Registered before everything else so browser preflight (OPTIONS) requests
+// are answered here and never reach `authenticate`, which would 401 them.
+// Origin is an explicit allowlist, not "*": the API uses bearer tokens, and a
+// wildcard would let any site's script call it with a stolen token.
+const allowedOrigins = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim());
+app.use(cors({ origin: allowedOrigins }));
 
 app.use(express.json());
 // First middleware, before auth — logs literally every request, including

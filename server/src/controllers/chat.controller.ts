@@ -5,6 +5,11 @@ import {
   type RunOutcome,
 } from "../orchestrator/runner.js";
 import { conversationService } from "../conversation/conversation.service.js";
+import { approvalStore } from "../approvals/approvalStore.js";
+import {
+  INVALID_SESSION_ID_MESSAGE,
+  isValidSessionId,
+} from "../conversation/sessionId.js";
 import {
   InputGuardrailTripwireTriggered,
   OutputGuardrailTripwireTriggered,
@@ -96,6 +101,12 @@ export async function chatController(req: Request, res: Response) {
     });
   }
 
+  if (!isValidSessionId(sessionId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: INVALID_SESSION_ID_MESSAGE });
+  }
+
   // Session ownership: a sessionId is claimed by the first user who writes to
   // it. Anyone else trying to continue that conversation is refused — without
   // this, any authenticated user could resume any session and read its history
@@ -180,6 +191,18 @@ export async function chatController(req: Request, res: Response) {
     }
 
     const assistantResponse = outcome.output;
+
+    // Never save or stream a blank reply: it would show up as an empty bubble
+    // and get replayed to the model on every later turn.
+    if (assistantResponse.trim().length === 0) {
+      console.error(`Assistant returned empty output for session ${sessionId}`);
+      return res.status(502).json({
+        success: false,
+        message:
+          "The assistant did not produce a response. Please try asking again.",
+      });
+    }
+
     conversationService.addAssistantMessage(
       sessionId,
       user.userId,
@@ -214,4 +237,85 @@ export async function chatController(req: Request, res: Response) {
       res.end();
     }
   }
+}
+
+// Shared guard for the read-only session endpoints below. A session that has
+// no owner yet (never written to) is reported as 404 rather than an empty
+// success, so a client can't probe which sessionIds exist.
+function authorizeSessionAccess(req: Request, res: Response): string | null {
+  if (!req.user) {
+    res.status(401).json({ success: false, message: "Not authenticated" });
+    return null;
+  }
+  const sessionId = req.params.sessionId as string;
+  if (!isValidSessionId(sessionId)) {
+    res
+      .status(400)
+      .json({ success: false, message: INVALID_SESSION_ID_MESSAGE });
+    return null;
+  }
+  const owner = conversationService.getSessionOwner(sessionId);
+  if (owner === undefined) {
+    res.status(404).json({ success: false, message: "Session not found" });
+    return null;
+  }
+  if (owner !== req.user.userId) {
+    res.status(403).json({
+      success: false,
+      message: "This conversation belongs to another user.",
+    });
+    return null;
+  }
+  return sessionId;
+}
+
+// Lets the chat UI restore a transcript — in particular the reply that is
+// written to history only AFTER a manager resolves a paused approval, which
+// the original /chat response could never have contained.
+export function getSessionMessages(req: Request, res: Response) {
+  const sessionId = authorizeSessionAccess(req, res);
+  if (!sessionId) return;
+  res.json({ success: true, data: conversationService.getHistory(sessionId) });
+}
+
+// The session owner's view of approvals raised in their own conversation.
+// /approvals is manager/admin-only, so without this an employee whose request
+// is paused has no way to learn that it was decided.
+export function getSessionApprovals(req: Request, res: Response) {
+  const sessionId = authorizeSessionAccess(req, res);
+  if (!sessionId) return;
+  res.json({ success: true, data: approvalStore.list({ sessionId }) });
+}
+
+// The caller's own conversations, newest first — the data behind a chat
+// history sidebar. Scoped strictly to req.user, never to a query parameter.
+export function listSessions(req: Request, res: Response) {
+  if (!req.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+  res.json({
+    success: true,
+    data: conversationService.listSessions(req.user.userId),
+  });
+}
+
+export function deleteSession(req: Request, res: Response) {
+  const sessionId = authorizeSessionAccess(req, res);
+  if (!sessionId) return;
+
+  // A paused run is resumed from the approvals table. Deleting the
+  // conversation underneath it would leave a manager approving something whose
+  // reply has nowhere to go.
+  if (approvalStore.list({ sessionId, status: "pending" }).length > 0) {
+    return res.status(409).json({
+      success: false,
+      message:
+        "This conversation has a request waiting for approval. Delete it after a decision is made.",
+    });
+  }
+
+  conversationService.clearConversation(sessionId);
+  res.json({ success: true });
 }
