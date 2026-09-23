@@ -20,7 +20,7 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 const REQUEST_DECLINED_MESSAGE =
-  "I can only help with questions about employees, attendance, departments, salaries, performance, or projects. Could you rephrase your request around one of those topics?";
+  "I can only help with questions about employees, attendance, departments, salaries, performance, projects, or the company's HR policies (leave, work from home, expenses, code of conduct). Could you rephrase your request around one of those topics?";
 
 function describeGuardrailFailure(error: unknown): string | null {
   if (error instanceof InputGuardrailTripwireTriggered) {
@@ -40,7 +40,7 @@ function describeGuardrailFailure(error: unknown): string | null {
       error.result.output.outputInfo,
     );
     return guardrailName === "Hallucination Prevention Guardrail"
-      ? "I wasn't able to fully verify part of that answer against the actual records, so I don't want to guess. Could you try asking again?"
+      ? "I wasn't able to fully verify part of that answer against the actual records or policy documents, so I don't want to guess. Could you try asking again?"
       : "I wasn't able to safely return that response. Could you try rephrasing your question?";
   }
 

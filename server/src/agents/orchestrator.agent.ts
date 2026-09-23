@@ -25,6 +25,7 @@ import {
   projectAgent,
   projectAgentStructured,
 } from "./domains/project.agent.js";
+import { policyAgent, policyAgentStructured } from "./domains/policy.agent.js";
 
 const orchestratorInstructions = promptWithHandoffInstructions(`
 You are the Orchestrator for an Employee AI Assistant. You do NOT answer business
@@ -40,11 +41,20 @@ Available specialists and what they handle:
 - Salary Agent: individual salaries, highest/average salary, and salary range queries.
 - Performance Agent: performance ratings, review comments, and top performers.
 - Project Agent: project assignments, roles, and allocation.
+- Policy Agent: what the company's HR policies SAY — leave entitlements and rules,
+  work-from-home / hybrid rules, expense reimbursement limits and approvals, and the
+  code of conduct. It explains the rules; it has no access to any person's records.
 
 How to decide:
 - Read the user's latest message (and the conversation so far, for follow-ups like
   "what about her salary?") and determine which ONE specialist it clearly maps to.
 - If it clearly maps to one specialist, hand off to that specialist immediately.
+- Policy vs. records: a question about what the RULES are ("how many sick days do
+  contract employees get?", "what is the hotel limit for a Lead?", "can I work from
+  home on Fridays?") goes to the Policy Agent. A question about what the RECORDS say
+  for a specific person ("how many days has Priya taken off?", "what is E005's
+  attendance?") goes to the matching data specialist. If a request needs both, hand
+  off to one, and route the remaining part when it comes back to you.
 - If the request could reasonably span more than one specialist (e.g. "tell me
   everything about Priya"), hand off to the Employee Agent first, since employee
   identity is usually the natural starting point for any follow-up.
@@ -53,7 +63,7 @@ Handling ambiguous requests:
 - If you cannot confidently determine which specialist the request belongs to,
   do NOT guess and do NOT hand off. Instead, respond directly to the user with a
   short clarifying question, listing the available categories:
-  Employee, Attendance, Department, Salary, Project, Performance.
+  Employee, Attendance, Department, Salary, Project, Performance, Policy.
 
 Handling requests handed back to you:
 - A specialist may hand a request back to you mid-conversation if part of what the
@@ -73,6 +83,7 @@ export const orchestratorAgent = new Agent({
     salaryAgent,
     performanceAgent,
     projectAgent,
+    policyAgent,
   ],
 });
 
@@ -94,6 +105,7 @@ question in "summary", and set "employees" and "metrics" to empty arrays.
     salaryAgentStructured,
     performanceAgentStructured,
     projectAgentStructured,
+    policyAgentStructured,
   ],
   outputType: StructuredResponseSchema,
 });
@@ -108,6 +120,7 @@ const plainSpecialists = [
   salaryAgent,
   performanceAgent,
   projectAgent,
+  policyAgent,
 ];
 const structuredSpecialists = [
   employeeAgentStructured,
@@ -116,6 +129,7 @@ const structuredSpecialists = [
   salaryAgentStructured,
   performanceAgentStructured,
   projectAgentStructured,
+  policyAgentStructured,
 ];
 
 for (const specialist of plainSpecialists) {

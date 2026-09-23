@@ -3,7 +3,11 @@ import {
   ToolGuardrailFunctionOutputFactory,
   type ToolInputGuardrailDefinition,
 } from "@openai/agents";
-import { isValidEmployeeId, isValidDepartmentId } from "./validators.js";
+import {
+  isValidEmployeeId,
+  isValidDepartmentId,
+  isValidSearchQuery,
+} from "./validators.js";
 
 type FieldValidator = (value: unknown) => string | null;
 
@@ -47,4 +51,9 @@ export const employeeIdGuardrail = createArgumentValidationGuardrail(
 export const departmentIdGuardrail = createArgumentValidationGuardrail(
   "Department ID Format Guardrail",
   { departmentId: isValidDepartmentId },
+);
+
+export const searchQueryGuardrail = createArgumentValidationGuardrail(
+  "Search Query Guardrail",
+  { query: isValidSearchQuery },
 );
