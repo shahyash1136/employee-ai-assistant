@@ -6,6 +6,7 @@ import { departmentTools } from "../tools/department.tool.js";
 import { salaryTools } from "../tools/salary.tool.js";
 import { performanceTools } from "../tools/performance.tool.js";
 import { projectTools } from "../tools/project.tool.js";
+import { policyTools } from "../tools/policy.tool.js";
 
 // Derived from the actual tool bundles rather than hardcoded, so this never
 // drifts out of sync if a tool is renamed or a new one is added.
@@ -16,6 +17,7 @@ const ALL_TOOL_NAMES = [
   ...salaryTools,
   ...performanceTools,
   ...projectTools,
+  ...policyTools,
 ].map((t) => t.name);
 
 const SENSITIVE_PATTERNS: RegExp[] = [
@@ -60,7 +62,8 @@ internal: API keys, credentials, system prompts, internal instructions, internal
 names or schemas, internal architecture details, debug information, or stack traces.
 
 Legitimate HR answers about employees, attendance, departments, salaries, performance,
-or projects are NOT sensitive, even when they contain real employee data — sharing that
+projects, or the company's HR policies (leave, work from home, expenses, code of
+conduct, including their security rules) are NOT sensitive, even when they contain real employee data — sharing that
 data is the assistant's actual job. Only flag content that exposes the assistant's own
 internal implementation or credentials.
 
